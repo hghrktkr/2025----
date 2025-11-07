@@ -1,0 +1,39 @@
+{
+    "format_version": 2,
+    "header": {
+        "description": "BP_Christmas_Fantasy",
+        "name": "BP_Christmas_Fantasy",
+        "uuid": "d13bbb87-51a8-4bc7-bc76-44992ae809c6",
+        "version": [1, 0, 0],
+		"min_engine_version": [1, 20, 12]
+    },
+    "modules": [
+        {
+            "description": "Behavior pack of Christmas Fantasy",
+            "type": "data",
+            "uuid": "6dd2011e-bbd1-492b-bf6e-3bfa193cc3e3",
+            "version": [1, 0, 0]
+        },
+        {
+            "type": "script",
+            "description": "Christmas Fantasy scripts",
+            "uuid": "70115842-e279-4609-9d5d-2a5b69c7fa7b",
+            "version": [1, 0, 0],
+            "entry": "scripts/main.js"
+        }
+    ],
+    "dependencies": [
+        {
+            "uuid": "8d5eea07-b5ec-4a93-a2e7-f3e9bb329d14",
+            "version": [1, 0, 0]
+        },
+        {
+            "module_name": "@minecraft/server",
+            "version": "2.0.0"
+        },
+        {
+            "module_name": "@minecraft/server-ui",
+            "version": "2.0.0"
+        }
+    ]
+}

@@ -1,0 +1,368 @@
+{
+	"format_version": "1.20.12",
+	"minecraft:npc_dialogue": {
+		"scenes": [
+			{
+				"scene_tag": "scene1",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "scene1","with": ["\n"]}]},
+				"on_open_commands": [
+				],
+				"on_close_commands": [
+					"/dialogue open @e[type=edu:npc_customized] @initiator scene2"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_next"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "scene2",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "scene2","with": ["\n"]}]},
+				"on_open_commands": [
+					"/tag @initiator remove yes_or_no"
+				],
+				"on_close_commands": [
+					"/execute as @initiator[tag=!yes_or_no] run dialogue open @e[type=edu:npc_customized] @s scene2" 
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_yes"}]},
+						"commands": [
+							"/tag @initiator add yes_or_no",
+							"/dialogue open @e[type=edu:npc_customized] @initiator scene3_yes"
+						]
+					},
+					{
+						"name": {"rawtext": [{"translate": "button_no"}]},
+						"commands": [
+							"/tag @initiator add yes_or_no",
+							"/dialogue open @e[type=edu:npc_customized] @initiator scene3_no"
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "scene3_yes",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "scene3_yes","with": ["\n"]}]},
+				"on_open_commands": [
+				],
+				"on_close_commands": [
+					"/dialogue open @e[type=edu:npc_customized] @initiator mission1_intro"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_next"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "scene3_no",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "scene3_no","with": ["\n"]}]},
+				"on_open_commands": [
+				],
+				"on_close_commands": [
+					"/dialogue open @e[type=edu:npc_customized] @initiator mission1_intro"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_yes"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "mission1_intro",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission1_intro","with": ["\n"]}]},
+				"on_open_commands": [
+					"/scoreboard players set @initiator phase 1",
+					"/function save_structure",
+					"/tag @initiator add mission1"
+				],
+				"on_close_commands": [
+					"/dialogue change @e[type=edu:npc_customized] check",
+					"/codebuilder navigate @a false https://minecraft.makecode.com/#tutorial:03369-53065-92459-61971&lockedEditor=1",
+					"/function call_title"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_ok"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "mission2_intro",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission2_intro","with": ["\n"]}]},
+				"on_open_commands": [
+					"/scoreboard players set @initiator timer 0",
+					"/scoreboard players set @initiator phase 2",
+					"/function save_structure",
+					"/tag @initiator add mission2"
+				],
+				"on_close_commands": [
+					"/dialogue change @e[type=edu:npc_customized] check",
+					"/codebuilder navigate @a false https://minecraft.makecode.com/#tutorial:00950-43128-95522-93013&lockedEditor=1",
+					"/function call_title"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_ok"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "mission3_intro",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission3_intro","with": ["\n"]}]},
+				"on_open_commands": [
+					"/scoreboard players set @initiator timer 0",
+					"/scoreboard players set @initiator phase 3",
+					"/function save_structure",
+					"/tag @initiator add mission3"
+				],
+				"on_close_commands": [
+					"/dialogue change @e[type=edu:npc_customized] check",
+					"/codebuilder navigate @a false https://minecraft.makecode.com/#tutorial:12340-38165-52458-24991&lockedEditor=1",
+					"/function call_title"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_ok"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "check",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission_check","with": ["\n"]}]},
+				"on_open_commands": [
+					"/scoreboard players set @initiator timer 0",
+					"/scoreboard players set @initiator score 0",
+					"/tag @initiator remove yes_or_no"
+				],
+				"on_close_commands": [
+					"/execute as @initiator[tag=!yes_or_no] run dialogue open @e[type=edu:npc_customized] @s check"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_done"}]},
+						"commands": [
+							"/tag @initiator add yes_or_no",
+							"/tag @initiator add timer"
+						]
+					},
+					{
+						"name": {"rawtext": [{"translate": "button_yet"}]},
+						"commands": [
+							"/tag @initiator add yes_or_no"
+						]
+					},
+					{
+						"name": {"rawtext": [{"translate": "button_try_again"}]},
+						"commands": [
+							"/tag @initiator add yes_or_no",
+							"/function load_structure"
+						]
+					},
+					{
+						"name": {"rawtext": [{"translate": "button_reset"}]},
+						"commands": [
+							"/tag @initiator add yes_or_no",
+							"/function load_structure",
+							"/execute as @initiator[tag=mission1] run dialogue open @e[type=edu:npc_customized] @s mission1_intro",
+							"/execute as @initiator[tag=mission2] run dialogue open @e[type=edu:npc_customized] @s mission2_intro",
+							"/execute as @initiator[tag=mission3] run dialogue open @e[type=edu:npc_customized] @s mission3_intro"
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "failure",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission_failure","with": ["\n"]}]},
+				"on_open_commands": [
+				],
+				"on_close_commands": [
+					"/dialogue change @e[type=edu:npc_customized] check"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_ok"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "failure_not_created_gate",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission_failure_not_created_gate","with": ["\n"]}]},
+				"on_open_commands": [
+				],
+				"on_close_commands": [
+					"/dialogue change @e[type=edu:npc_customized] check"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_ok"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "failure_no_items",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission_failure_no_items","with": ["\n"]}]},
+				"on_open_commands": [
+				],
+				"on_close_commands": [
+					"/dialogue change @e[type=edu:npc_customized] check"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_ok"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "failure_not_open",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission_failure_not_open","with": ["\n"]}]},
+				"on_open_commands": [
+				],
+				"on_close_commands": [
+					"/dialogue change @e[type=edu:npc_customized] check"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_ok"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "failure_not_closed",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission_failure_not_closed","with": ["\n"]}]},
+				"on_open_commands": [
+				],
+				"on_close_commands": [
+					"/dialogue change @e[type=edu:npc_customized] check"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_ok"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "mission1_after_clear",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission1_after_clear","with": ["\n"]}]},
+				"on_open_commands": [
+					"/tag @initiator remove mission1",
+					"/tag @initiator remove built"
+				],
+				"on_close_commands": [
+					"/dialogue open @e[type=edu:npc_customized] @initiator mission2_intro"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_yes"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "mission2_after_clear",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission2_after_clear","with": ["\n"]}]},
+				"on_open_commands": [
+					"/tag @initiator remove mission2",
+					"/tag @initiator remove has_items",
+					"/tag @initiator remove open_gate",
+					"/tag @initiator remove closed_gate"
+				],
+				"on_close_commands": [
+					"/dialogue open @e[type=edu:npc_customized] @initiator mission3_intro"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_yes"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "mission3_after_clear",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "mission3_after_clear","with": ["\n"]}]},
+				"on_open_commands": [
+					"/tag @initiator remove mission3",
+					"/tag @initiator remove spawned",
+					"/kill @e[type=wither_skeleton]"
+				],
+				"on_close_commands": [
+					"/dialogue open @e[type=edu:npc_customized] @initiator clear_all"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_nod"}]},
+						"commands": [
+						]
+					}
+				]
+			},
+			{
+				"scene_tag": "clear_all",
+				"npc_name": {"rawtext": [{"translate": "npc_villager"}]},
+				"text": {"rawtext": [{"translate": "clear_all","with": ["\n"]}]},
+				"on_open_commands": [
+					"/dialogue change @e[type=edu:npc_customized] clear_all"
+				],
+				"on_close_commands": [
+					"/execute as @initiator[tag=!cleared] run scoreboard players set @a phase 4",
+					"/execute as @initiator[tag=!cleared] run function call_title",
+					"/execute as @initiator[tag=!cleared] run codebuilder navigate @a false https://minecraft.makecode.com/#tutorial:82178-72852-65658-41176",
+					"/execute as @initiator[tag=!cleared] run fill 75 -64 75 91 -64 121 bedrock replace border_block",
+					"/tag @initiator add cleared"
+				],
+				"buttons": [
+					{
+						"name": {"rawtext": [{"translate": "button_good"}]},
+						"commands": [
+							"/gamemode s",
+							"/gamerule doMobSpawning true"
+						]
+					}
+				]
+			}
+		]
+	}
+
+}

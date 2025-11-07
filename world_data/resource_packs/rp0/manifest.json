@@ -1,0 +1,18 @@
+{
+    "format_version": 2,
+    "header": {
+        "description": "RP_Christmas_Fantasy",
+        "name": "RP_Christmas_Fantasy",
+        "uuid": "8d5eea07-b5ec-4a93-a2e7-f3e9bb329d14",
+        "version": [1, 0, 0],
+        "min_engine_version": [1, 20, 12]
+    },
+    "modules": [
+        {
+            "description": "リソースパック",
+            "type": "resources",
+            "uuid": "38bb34b3-9e24-43a4-a62c-a462e4ed2503",
+            "version": [1, 0, 0]
+        }
+    ]
+}
