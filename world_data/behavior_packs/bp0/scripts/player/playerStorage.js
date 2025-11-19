@@ -60,12 +60,6 @@ export class PlayerStorage {
         }
     }
 
-    /** プレイヤー退出時 */
-    static onPlayerLeave(player) {
-        this.savePlayerData(player);
-        this.players.delete(player.id);
-    }
-
     /** プレイヤーのDynamic Property削除　テストモードのみ可 */
     static resetPlayerData(player) {
         console.warn(`プレイヤー ${player.name}のデータをリセットします...`);

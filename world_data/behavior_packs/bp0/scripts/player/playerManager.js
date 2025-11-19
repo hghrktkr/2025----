@@ -14,12 +14,6 @@ class PlayerManager {
             PlayerStorage.loadPlayerData(player);
         });
 
-        world.afterEvents.playerLeave.subscribe((ev) => {
-            if(!PlayerStorage.players.has(ev.playerId)) return;
-            const player = PlayerStorage.players.get(ev.playerId).player;
-            PlayerStorage.onPlayerLeave(player);
-        });
-
         system.runInterval(() => {
             PlayerStorage.saveDirtyPlayers();
         }, this.TICK_SAVE_INTERVAL);
