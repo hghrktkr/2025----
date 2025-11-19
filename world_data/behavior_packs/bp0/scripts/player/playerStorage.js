@@ -66,6 +66,7 @@ export class PlayerStorage {
         this.players.delete(player.id);
     }
 
+    /** プレイヤーのDynamic Property削除　テストモードのみ可 */
     static resetPlayerData(player) {
         console.warn(`プレイヤー ${player.name}のデータをリセットします...`);
 
