@@ -56,4 +56,12 @@ export class PlayerData {
         Object.assign(playerData, data);
         return playerData;
     }
+
+    /** タイムスタンプ、バージョン、needsSave更新 */
+    markSaved() {
+        const now = new Date();
+        this.save.dateTime = now;
+        this.save.version += 1;
+        this.save.needsSave = false;
+    }
 }

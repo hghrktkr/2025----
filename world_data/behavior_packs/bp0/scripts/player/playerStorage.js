@@ -3,8 +3,8 @@
 
 import { PlayerData } from "./PlayerData";
 
-class PlayerStorage {
-    static players = new Map(); // key: playerId, value: PlayerData ゲーム中の保存用
+export class PlayerStorage {
+    static players = new Map(); // key: playerId, value: { Player, data: PlayerData } ゲーム中の参照用
     static DATA_KEY = "edu:player_data";
 
     /** Dynamic Propertyをロード プレイヤーがワールドに参加した時実行 */
@@ -16,9 +16,7 @@ class PlayerStorage {
             try {
                 playerData = PlayerData.dataFromJson(player, playerDataJSON);
             } catch (error) {
-                console.warn(`プレイヤー${player.name}のデータ破損 再生成中...`);
-                playerData = new PlayerData(player);
-                playerData.save.needsSave = true;
+                console.warn(`データ破損 プレイヤー名: ${player.name}`);
             }
         }
         else {
@@ -26,21 +24,31 @@ class PlayerStorage {
             playerData.save.needsSave = true;
         }
 
-        this.players.set(player.id, playerData);
+        this.players.set(player.id, { player, data: playerData });
     }
 
     /** プレイヤーデータをjson化してDynamic Propertyにセーブ */
     static savePlayerData(player) {
-        let playerData = this.players.get(player.id);
+        let playerData = this.players.get(player.id).data;
 
         if(!playerData) {
             console.warn(`プレイヤー${player.name}のデータ未検出 再生成中...`);
-            this.loadPlayerData();
-            playerData = this.players.get(player.id);
+            return;
         }
+
+        playerData.markSaved();
 
         const playerDataJSON = playerData.dataToJson();
         player.setDynamicProperty(this.DATA_KEY, playerDataJSON);
+    }
+
+    /** needsSaveがtrueのときにセーブ実行 シングルプレイヤー想定だが念のため全プレイヤー処理 */
+    static saveDirtyPlayers() {
+        for(const [player, data] of this.players.values()) {
+            if(data.save.needsSave) {
+                PlayerStorage.savePlayerData(player);
+            }
+        }
     }
 
     /** プレイヤー退出時 */
