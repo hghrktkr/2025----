@@ -11,7 +11,6 @@ export class PlayerStorage {
     static loadPlayerData(player) {
         const playerDataJSON = player.getDynamicProperty(this.DATA_KEY);
         let playerData;
-
         if(playerDataJSON) {
             try {
                 playerData = PlayerData.dataFromJson(player, playerDataJSON);
@@ -21,23 +20,19 @@ export class PlayerStorage {
         }
         else {
             playerData = new PlayerData(player);
-            playerData.save.needsSave = true;
         }
-
+        playerData.save.needsSave = true;
         this.players.set(player.id, { player, data: playerData });
     }
 
     /** プレイヤーデータをjson化してDynamic Propertyにセーブ */
     static savePlayerData(player) {
         let playerData = this.players.get(player.id).data;
-
         if(!playerData) {
             console.warn(`プレイヤー${player.name}のデータ未検出 再生成中...`);
             return;
         }
-
         playerData.markSaved();
-
         const playerDataJSON = playerData.dataToJson();
         player.setDynamicProperty(this.DATA_KEY, playerDataJSON);
     }
