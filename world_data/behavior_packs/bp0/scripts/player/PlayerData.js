@@ -48,15 +48,7 @@ export class PlayerData {
             save: this.save
         });
     }
-
-    /** jsonデータからインスタンス生成 */
-    static dataFromJson(player, jsonString) {
-        const data = JSON.parse(jsonString);
-        const playerData = new PlayerData(player);
-        Object.assign(playerData, data);
-        return playerData;
-    }
-
+    
     /** タイムスタンプ、バージョン、needsSave更新 */
     markSaved() {
         const now = new Date();
@@ -64,4 +56,13 @@ export class PlayerData {
         this.save.version += 1;
         this.save.needsSave = false;
     }
+    
+    /** jsonデータからインスタンス生成 インスタンス化前に実行する必要があるためstatic */
+    static dataFromJson(player, jsonString) {
+        const data = JSON.parse(jsonString);
+        const playerData = new PlayerData(player);
+        Object.assign(playerData, data);
+        return playerData;
+    }
+
 }
