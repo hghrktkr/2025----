@@ -17,30 +17,30 @@ opening → game1 → game2 → game3 → ending
 プレイヤーが洋館（ポータル）からゲームの扉を通過するとスタートルームへ入室
 
 行う処理:
--ゲームルール説明
--プレイするレベルの自動選択（初回はレベル1）
--クリア済みのレベル数に応じて次レベルへ（最大Lv3）
--PlayerData.spawnLocation にスタートルームの座標を保存
--needsSave = true としてセーブ
+- ゲームルール説明
+- プレイするレベルの自動選択（初回はレベル1）
+- クリア済みのレベル数に応じて次レベルへ（最大Lv3）
+- PlayerData.spawnLocation にスタートルームの座標を保存
+- needsSave = true としてセーブ
 
 ### 3.2 ゲーム開始（ゲームルームへ遷移）
 
 扉を通過するとゲーム開始
 
 処理手順:
--画面暗転
--入力制御（InputPermission OFF）
--扉のSE再生
--RoomManager がゲームルームを生成
--指定位置へテレポート
--暗転解除
--クリアタイム計測開始（プレイヤー操作可能時間のみ）
+- 画面暗転
+- 入力制御（InputPermission OFF）
+- 扉のSE再生
+- RoomManager がゲームルームを生成
+- 指定位置へテレポート
+- 暗転解除
+- クリアタイム計測開始（プレイヤー操作可能時間のみ）
 
 ### 3.3 ゲーム中の動作パターン
 
 ゲームルームには2つの形式がある：
--ミッション形式: 指定されたタスク（例：特定位置にブロックを置く）を達成すると次の部屋へ進行
--8番出口形式: 複数の扉から正解を選ぶ 正解に進むと次の部屋へ
+- ミッション形式: 指定されたタスク（例：特定位置にブロックを置く）を達成すると次の部屋へ進行
+- 8番出口形式: 複数の扉から正解を選ぶ 正解に進むと次の部屋へ
 
 RoomManager は部屋生成時にどちらの形式かを決定・構築する。
 
@@ -49,28 +49,28 @@ RoomManager は部屋生成時にどちらの形式かを決定・構築する�
 指定した部屋数に到達するとゴールルームへ遷移
 
 処理内容:
--クリアタイムを表示
--ベストタイムを PlayerData へ保存（良いタイムのみ更新）
--レベルクリアフラグを更新
--needsSave = true としてセーブ
+- クリアタイムを表示
+- ベストタイムを PlayerData へ保存（良いタイムのみ更新）
+- レベルクリアフラグを更新
+- needsSave = true としてセーブ
 
 ### 3.5 クリア後（次シナリオ解放）
 
 シナリオの currentScenarioId を次に進める
 
 処理内容:
--洋館（ポータル）内に次のゲームへの扉が生成される
--プレイヤーはポータルへテレポートされる
+- 洋館（ポータル）内に次のゲームへの扉が生成される
+- プレイヤーはポータルへテレポートされる
 
 ## 4. レベル進行仕様
 
 ### 4.1 レベルの扱い
 
 各ゲームにおいて
--初回 → Lv1
--Lv1クリア → 次回はLv2
--Lv2クリア → 次回はLv3
--Lv3クリア → レベル上昇は行わない
+- 初回 → Lv1
+- Lv1クリア → 次回はLv2
+- Lv2クリア → 次回はLv3
+- Lv3クリア → レベル上昇は行わない
 
 ### 4.2 レベル別の部屋数
 
@@ -89,33 +89,33 @@ function createGameProgress() {
 }
 
 ### 5.2 PlayerData 全体
-export class PlayerData {
-    constructor(player) {
-        this.id = player.id;
-        this.name = player.name;
+    export class PlayerData {
+        constructor(player) {
+            this.id = player.id;
+            this.name = player.name;
 
-        // 次ログイン時の開始位置（進行中シナリオで変動）
-        this.lastLocation = null;
+            // 次ログイン時の開始位置（進行中シナリオで変動）
+            this.lastLocation = null;
 
-        // シナリオ進行
-        this.scenario = {
-            currentScenarioId: "opening",
-            flags: {}
-        };
+            // シナリオ進行
+            this.scenario = {
+                currentScenarioId: "opening",
+                flags: {}
+            };
 
-        // 各ゲームの進捗
-        this.game1 = createGameProgress();
-        this.game2 = createGameProgress();
-        this.game3 = createGameProgress();
+            // 各ゲームの進捗
+            this.game1 = createGameProgress();
+            this.game2 = createGameProgress();
+            this.game3 = createGameProgress();
 
-        // セーブデータ管理
-        this.save = {
-            needsSave: false,
-            dateTime: "",
-            version: 1
-        };
+            // セーブデータ管理
+            this.save = {
+                needsSave: false,
+                dateTime: "",
+                version: 1
+            };
+        }
     }
-}
 
 ## 6. マルチプレイ仕様
 
