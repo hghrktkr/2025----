@@ -5,8 +5,3 @@ import { PlayerManager } from "./player/playerManager";
 world.afterEvents.worldLoad.subscribe(() => {
     PlayerManager.initialize();
 });
-
-// プレイヤーがワールドに参加したとき
-world.afterEvents.playerSpawn.subscribe((ev) => {
-    const {player, initialSpawn} = ev;
-});
