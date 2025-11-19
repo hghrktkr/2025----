@@ -42,6 +42,7 @@ export class PlayerStorage {
         for(const [player, data] of this.players.values()) {
             if(data.save.needsSave) {
                 PlayerStorage.savePlayerData(player);
+                console.log(`player ${player.name} saved.`);
             }
         }
     }
