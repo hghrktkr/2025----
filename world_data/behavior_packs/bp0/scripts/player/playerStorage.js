@@ -2,6 +2,7 @@
 // カプセル化のためクラスにしているが、基本的にstaticのみ
 
 import { PlayerData } from "./PlayerData";
+import { TEST_MODE } from "../configs/testModeFlag";
 
 export class PlayerStorage {
     static players = new Map(); // key: playerId, value: { Player, data: PlayerData } ゲーム中の参照用
@@ -14,6 +15,11 @@ export class PlayerStorage {
         if(playerDataJSON) {
             try {
                 console.log('プレイヤーデータ発見 ロード中...');
+                if(TEST_MODE.CONFIG) {
+                    console.log(`===== load data =====`);
+                    console.log(playerDataJSON);
+                    console.log(`===============`);
+                }
                 playerData = PlayerData.dataFromJson(player, playerDataJSON);
             } catch (error) {
                 console.warn(`データ破損 プレイヤー名: ${player.name}`);
@@ -58,6 +64,14 @@ export class PlayerStorage {
     static onPlayerLeave(player) {
         this.savePlayerData(player);
         this.players.delete(player.id);
+    }
+
+    static resetPlayerData(player) {
+        console.warn(`プレイヤー ${player.name}のデータをリセットします...`);
+
+        player.setDynamicProperty(this.DATA_KEY, undefined);
+        this.players.delete(player.id);
+        this.loadPlayerData(player);
     }
 
     static get(player) {
