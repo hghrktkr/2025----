@@ -1,5 +1,6 @@
 // シナリオの遷移、各シナリオ毎のイベントのフック
 
+import { world } from "@minecraft/server";
 import { PlayerStorage } from "../player/playerStorage";
 
 export class ScenarioManager {
@@ -61,5 +62,26 @@ export class ScenarioManager {
                 console.warn(`無効なシナリオが参照されました ${scenarioId}`);
                 break;
         }
+    }
+
+    /** 棒を使うとシナリオを次へ進める */
+    static manualScenarioControl() {
+        world.beforeEvents.itemUse.subscribe((ev) => {
+            if(ev.itemStack.typed !== "minecraft:stick") return;
+            const player = ev.source;
+            ev.cancel;
+            
+            let currentScenarioId = this.getCurrentScenarioId(player);
+            console.log(`元のシナリオ: ${currentScenarioId}`);
+            
+            const canMoveToNextScenario = this.goToNextScenario(player);
+            if(canMoveToNextScenario) {
+                let currentScenarioId = this.getCurrentScenarioId(player);
+                console.log(`新しいシナリオ: ${currentScenarioId}`);
+            }
+            else {
+                console.log(`最後のシナリオです ${currentScenarioId}`);
+            }
+        });
     }
 }
