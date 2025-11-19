@@ -13,12 +13,14 @@ export class PlayerStorage {
         let playerData;
         if(playerDataJSON) {
             try {
+                console.log('プレイヤーデータ発見 ロード中...');
                 playerData = PlayerData.dataFromJson(player, playerDataJSON);
             } catch (error) {
                 console.warn(`データ破損 プレイヤー名: ${player.name}`);
             }
         }
         else {
+            console.log('プレイヤーデータ新規作成中...');
             playerData = new PlayerData(player);
         }
         playerData.save.needsSave = true;
@@ -28,19 +30,24 @@ export class PlayerStorage {
     /** プレイヤーデータをjson化してDynamic Propertyにセーブ */
     static savePlayerData(player) {
         let playerData = this.players.get(player.id).data;
+        console.log(`player data: ${playerData.save.needsSave}, ${playerData.save.version}, ${playerData.save.dateTime}`);
         if(!playerData) {
             console.warn(`プレイヤー${player.name}のデータ未検出 再生成中...`);
             return;
         }
         playerData.markSaved();
-        const playerDataJSON = playerData.dataToJson();
+        const playerDataJSON = playerData.dataToJSON();
         player.setDynamicProperty(this.DATA_KEY, playerDataJSON);
     }
 
     /** needsSaveがtrueのときにセーブ実行 シングルプレイヤー想定だが念のため全プレイヤー処理 */
     static saveDirtyPlayers() {
-        for(const [player, data] of this.players.values()) {
+        if(this.players.size === 0) return;
+        for(const entry of this.players.values()) {
+            const { player, data } = entry;
             if(data.save.needsSave) {
+                console.log(`player: ${player.name}`);
+                console.log(`player data: ${data.save.needsSave}, ${data.save.version}, ${data.save.dateTime}`);
                 PlayerStorage.savePlayerData(player);
                 console.log(`player ${player.name} saved.`);
             }
