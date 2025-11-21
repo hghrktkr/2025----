@@ -1,4 +1,4 @@
-// PlayerDataの操作(保存・ロード)
+// PlayerDataの永続化処理
 // カプセル化のためクラスにしているが、基本的にstaticのみ
 
 import { PlayerData } from "./PlayerData";
@@ -44,6 +44,17 @@ export class PlayerStorage {
         playerData.markSaved();
         const playerDataJSON = playerData.dataToJSON();
         player.setDynamicProperty(this.DATA_KEY, playerDataJSON);
+    }
+
+    /** すべてのプレイヤーのsaveフラグをたてる */
+    static setDirtyPlayers() {
+        if(this.players.size === 0) return;
+        for(const entry of this.players.values()) {
+            const { player, data } = entry;
+            if(data.save.needsSave) continue;
+            data.save.needsSave = true;
+            console.log(`player ${player.name} save flag turned true`);
+        }
     }
 
     /** needsSaveがtrueのときにセーブ実行 シングルプレイヤー想定だが念のため全プレイヤー処理 */

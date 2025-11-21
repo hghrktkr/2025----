@@ -64,5 +64,5 @@ export class PlayerData {
         Object.assign(playerData, data);
         return playerData;
     }
-
+    
 }

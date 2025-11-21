@@ -1,9 +1,10 @@
 // 各ゲーム進行の基底クラス
 
-import { Dimension, InputPermissionCategory, Player } from "@minecraft/server";
+import { Player } from "@minecraft/server";
 import { PlayerStorage } from "../player/playerStorage";
 import { TEST_MODE } from "../configs/testModeFlag";
 import { PlayerManager } from "../player/playerManager";
+import { ScenarioManager } from "../scenario/scenarioManager";
 
 export class GameManagerBase {
     constructor({ roomManager, config = {} } = {}) {
@@ -15,8 +16,8 @@ export class GameManagerBase {
         this.roomManager = roomManager;
 
         // 状態
-        this.state = INIT;                                      // INIT, LOADING, READY, TRANSITIONING, RUNNING, PAUSED, ENDED
-        this.currentScenarioId = null;                          // game1, game2, game3
+        this.state = "INIT";                                    // INIT, LOADING, READY, TRANSITIONING, RUNNING, PAUSED, ENDED
+        this.gameKey = null;                                    // game1, game2, game3
         this.currentLevel = 1;                                  // 1 - 3
         this.currentProgress = 0;                               // 部屋の進行度 スタートルーム:0 ゲームルーム:1～
         this.requiredRoomCount = config.requiredRoomCount || 3; // ゴールまでの部屋数(ゲームルームの数)
@@ -43,13 +44,13 @@ export class GameManagerBase {
             );
         }
 
-        emit(eventName, payload) {
+        async emit(eventName, payload) {
             const handlers = this.eventHandlers[eventName] || [];
             for (const h of handlers) {
                 try {
-                    h(payload);
+                    await (payload);
                 } catch(e) {
-                    console.warn(`error: ${e}`);
+                    console.warn(`${eventName} handler error`, e);
                 }
             }
         }
@@ -67,7 +68,7 @@ export class GameManagerBase {
         async init(scenarioId) {
             this.state = "LOADING";
             if(this.debug) console.log(`game state: ${this.state} for ${scenarioId}`);
-            this.currentScenarioId = scenarioId;
+            this.gameKey = scenarioId;
 
             // RoomManagerの初期化処理をあとから追記（非同期処理）
             // イベントハンドラに初期処理をadd
@@ -78,56 +79,51 @@ export class GameManagerBase {
             this.emit("ready", { scenarioId }); // 登録した初期処理発火
         }
     
+
+
         /**
          * スタートルーム入室時の処理
-         * spawnLocation設定、PlayerData更新、ゲームレベル取得
-         * @param {Player} player 
+         * startRoomLocation設定、PlayerData更新、ゲームレベル取得
+         * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
          * @param {import("@minecraft/server").DimensionLocation} spawnLocation 
          * @returns 
          */
-        onEnterStartRoom(player, spawnLocation) {
+        onEnterStartRoom(player, startRoomLocation) {
             if(!PlayerStorage.players.has(player.id)) {
                 console.warn(`プレイヤーデータが見つかりません`);
                 return;
             }
-            const playerData = PlayerStorage.get(player).data;
-
+            
             // PlayerData更新→セーブ
-            playerData.lastLocation = spawnLocation;
-            player.setSpawnPoint(spawnLocation);
-            playerData.save.needsSave = true;
-
+            PlayerManager.setSpawnPointForAll(startRoomLocation);
+            PlayerStorage.setDirtyPlayers();
+            
             // ゲームレベルを取得
-            this.currentLevel = this._setGameLevel(playerData);
+            this.currentLevel = PlayerManager.getGameLevel(player, this.gameKey);
         }
+
+
 
         /**
          * ゲーム開始の処理(ゲームルーム入室時)
          * 扉を通る演出⇒テレポート⇒ゲームルームへ
-         * @param {Player} player 
+         * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
          * @returns 
          */
         async startGame(player) {
             if(this.state !== "READY" || this.state === "PAUSED") {
                 console.warn(`can't start game state = ${this.state}`);
-                this._teleportPlayersToLastLocation(player);
+                PlayerManager.teleportAllPlayersToLastLocation();
                 return;
             }
 
             this.state = "TRANSITIONING";
-            if(this.debug) console.log(`game state: ${this.state} for ${this.currentScenarioId}`);
+            if(this.debug) console.log(`game state: ${this.state} for ${this.gameKey}`);
 
             // 暗転と扉のSE
-            await this._openDoorSequence();
-
             // テレポート処理
-            // const roomLocation = ...
-            await this._teleportPlayers(roomLocation);
-
             // 部屋の内装生成処理 あとから
-
             // 暗転解除
-            await this._onEnteredRoomSequence();
 
             // タイマー開始
             this._startTimer();
@@ -137,187 +133,103 @@ export class GameManagerBase {
 
         }
 
+        /**
+         * 各部屋のミッションをクリアした時(正しい扉を開けたとき)
+         * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
+         */
         async onRoomCleared(player) {
             this.currentProgress += 1;
-            this._setCurrentProgressForAll(this.currentProgress);
+            const lvKey = PlayerManager.convertLvKey(this.currentLevel);
+            PlayerManager.setCurrentProgressForAll(this.gameKey, lvKey, this.currentProgress);
 
-            // イベントの着火
+            // イベントの発火
 
-            // 部屋数を超えたらクリア処理へ
+            // 指定された部屋数を超えたらクリア処理
             if(this.currentProgress > this.requiredRoomCount) {
-                this._onGoalReached(player);
+                await this._onGoalReached(player);
             }
             else {
                 // 次の部屋へ
+                // 部屋の生成
+                // const roomLocation = ... あとから
+                await this._proceedToNextRoom(roomLocation);
             }
         }
+
+        /**
+         * 間違えた扉を開けたらスタートルームに戻す
+         * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
+         */
+        async onRoomFailed(player) {
+            this.currentProgress = 0;
+            const lvKey = PlayerManager.convertLvKey(this.currentLevel);
+            PlayerManager.setCurrentProgressForAll(this.gameKey, lvKey, this.currentProgress);
+            const playerData = PlayerStorage.get(player).data;
+            const startRoomLocation = playerData.lastLocation;
+            this._proceedToNextRoom(startRoomLocation);
+        }
+
+        /**
+         * ゲームルームを抜けて洋館へ戻る時
+         * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
+         */
+        async exitGameRoom(player) {
+            // const robbyLocation = ... あとから
+            this._setSpawnPointForAll(robbyLocation);
+            await this._openDoorSequence();
+            await this._teleportPlayers(robbyLocation);
+            await this._onEnteredRoomSequence();
+        }
+
+        
 
 
     /* -------------------------
     クラス内関数
      ------------------------- */
 
-        /** このゲームの現在のレベルをPlayerDataをもとに返す */
-        _setGameLevel(playerData) {
-            const gameProgress = playerData[this._gameKey];
-            if(!gameProgress.lv1.cleared) return 1;
-            if(!gameProgress.lv2.cleared) return 2;
-            if(!gameProgress.lv3.cleared) return 3;
-            return 3;
-        }
-
-        /** 数値のレベルをPlayerDataのキーに変換 */
-        _convertLvKey(currentLevel) {
-            return `lv${currentLevel}`;
-        }
+        
 
         /**
-         * 参加中のすべてのプレイヤーを指定位置へテレポート
-         * @param {import("@minecraft/server").DimensionLocation} dLocation 
+         * ゴール処理
+         * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
          */
-        async _teleportPlayers(dLocation) {
-            for(const entry of PlayerStorage.players.values()) {
-                const { player } = entry;
-                await this._teleportPlayer(player, dLocation);
-            }
-        }
-
-        /**
-         * 参加中のすべてのプレイヤーをゲームのスタートルームへテレポート
-         * @param {Player} player 
-         * @returns 
-         */
-        async _teleportPlayersToLastLocation(player) {
-            const playerData = PlayerStorage.get(player).data;
-            const lastLocation = playerData.lastLocation;
-            if(!lastLocation) {
-                console.warn(`can't find lastLocation`);
-                return;
-            }
-            await this._teleportPlayers(lastLocation);
-        }
-
-        /**
-         * 指定したプレイヤーをテレポート
-         * @param {Player} player 
-         * @param {import("@minecraft/server").DimensionLocation} dLocation 
-         * @returns 
-         */
-        async _teleportPlayer(player, dLocation) {
-            if(!player || !dLocation) return;
-            const tpLoc = {
-                x: dLocation.x,
-                y: dLocation.y,
-                z: dLocation.z
-            }
-            try {
-                await player.teleport(tpLoc);
-            } catch (error) {
-                console.warn(`failed to teleport ${player.name}`);
-            }
-        }
-
-        _setCurrentProgressForAll(progressNum) {
-            for(const entry of PlayerStorage.players.values()) {
-                const { player, data } = entry;
-                if(!data) {
-                    console.warn(`can't find data of ${player.name}`);
-                    continue;
-                }
-                data[this.currentScenarioId].currentProgress = progressNum;
-            }
-        }
-
-        _onGoalReached(player) {
+        async _onGoalReached(player) {
+            // タイム取得
             this.elapsedMs = this._stopTimer();
 
-            // クリア処理
-            PlayerManager.setCleared(this.currentScenarioId, this._convertLvKey(this.currentLevel));
+            // タイム保存
+            await _setClearResultForAll();
+            PlayerStorage.setDirtyPlayers();
 
-            // ベストタイム更新のとき
-            const previousClearTime = PlayerManager.getClearTime(player, this.currentScenarioId, this._convertLvKey(this.currentLevel));
-            if(this.elapsedMs < previousClearTime) {
-                PlayerManager.setClearTime(this.currentScenarioId, this._convertLvKey(this.currentLevel),this.elapsedMs);
-            }
+            // ゴールルームへ
+            await this._openDoorSequence();
+            // const goalRoomLocation = ... あとから
+            await this._teleportPlayers(goalRoomLocaton);
+            await this._onEnteredRoomSequence();
 
-            // ゴールルームへテレポート(入室演出)
+            // ゴール時のイベント発火
 
-            // タイム表示 ベストタイム表示
+            // シナリオ更新
+            ScenarioManager.goToNextScenario(player);
 
-            // シナリオ進行
-
-            this.state = "ENDED";
-        }
-
-    /* -------------------------
-    演出関連
-     ------------------------- */
-        
-        /**操作不可、扉SE、カメラフェードアウト */
-        async _openDoorSequence() {
-            await this._setPermissionForAll(false);
-            await this._setCameraForAll("fade");
-            await this._playSoundForAll("edu:door_open");
-        }
-
-        async _onEnteredRoomSequence() {
-            await this._setPermissionForAll(true);
-            await this._setCameraForAll("clear");
+            // ステート更新
+            this.state = "ENDED"
         }
 
         /**
-         * すべてのプレイヤーの操作許可/禁止
-         * @param {boolean} enabled 
+         * 次の部屋へ移動する処理
+         * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
          */
-        async _setPermissionForAll(enabled) {
-            for(const entry of PlayerStorage.players.values()) {
-                const { player } = entry.player;
-                try {
-                    await player.inputPermissions.setPermissionCategory(InputPermissionCategory.Movement, enabled);
-                } catch (error) {
-                    console.warn(`can't set permissions of ${player.name}`);
-                }
-            }
+        async _proceedToNextRoom(roomLocation) {
+            if(this.debug) console.log(`next room number: ${this.currentProgress}`);
+
+            // 次の部屋へ移動処理
+            await this._openDoorSequence();
+            await this._teleportPlayers(roomLocation);
+            await this._onEnteredRoomSequence();
         }
 
-        /**
-         * すべてのプレイヤーにSE再生
-         * @param {string} soundId 
-         * @param {Dimension} dimension 
-         */
-        async _playSoundForAll(soundId) {
-            if(this.debug) console.log(`soundId: ${soundId}`);
-            for(const entry of PlayerStorage.players.values()) {
-                const { player } = entry.player;
-                try {
-                    await player.playSound(soundId);
-                } catch (error) {
-                    console.warn(`can't play sound ${soundId} for ${player.name}`);
-                }
-            }
-        }
-
-        /**
-         * すべてのプレイヤーのカメラ操作
-         * @param {string} cameraOption "fade", "clear"
-         */
-        async _setCameraForAll(cameraOption) {
-            if(this.debug) console.log(`cameraOption: ${cameraOption}`);
-            for(const entry of PlayerStorage.players.values()) {
-                const { player } = entry.player;
-                switch (cameraOption) {
-                    case "fade":
-                        await player.camera.fade();
-                        break;
-                    case "clear":
-                        await player.camera.clear();
-                        break;
-                    default:
-                        console.warn(`can't set camera ${cameraOption} to ${player.name}`);
-                        break;
-                }
-            }
-        }
 
     /* -------------------------
     タイマー
@@ -342,13 +254,4 @@ export class GameManagerBase {
             const pad = (num) => String(num).padStart(2,"0");   // 1桁の場合0挿入
             return `${pad(min)}:${pad(sec)}`;
         }
-
-    /* -------------------------
-    サブクラスでオーバーライド
-     ------------------------- */
-    
-        /** 自身がどのゲームか指定する
-         *  game1, game2, game3
-         */
-        _gameKey() {}
 }

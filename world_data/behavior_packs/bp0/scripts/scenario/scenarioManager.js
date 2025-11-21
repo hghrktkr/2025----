@@ -2,6 +2,7 @@
 
 import { world } from "@minecraft/server";
 import { PlayerStorage } from "../player/playerStorage";
+import { PlayerManager } from "../player/playerManager";
 
 export class ScenarioManager {
     static SCENARIOS = [ 'opening', 'game1', 'game2', 'game3', 'ending' ];
@@ -19,24 +20,23 @@ export class ScenarioManager {
 
     /** プレイヤーのシナリオを進めてイベントをフック */
     static goToNextScenario(player) {
-        const playerData = PlayerStorage.get(player).data;
         const currentScenarioId= this.getCurrentScenarioId(player);
         const nextScenarioId = this.getNextScenarioId(currentScenarioId);
 
         if(!nextScenarioId) return false;
 
         // プレイヤーデータのシナリオ更新
-        playerData.scenario.currentScenarioId = nextScenarioId;
-        playerData.save.needsSave = true;
+        PlayerManager.setScenarioId(nextScenarioId);
+        PlayerStorage.setDirtyPlayers();
 
         // シナリオイベントの実行
-        this.onEnterScenario(player, nextScenarioId);
+        this.onEnterScenario(nextScenarioId);
         
         return true;
     }
 
     /** 各シナリオ開始時の処理呼び出し */
-    static onEnterScenario(player, scenarioId) {
+    static onEnterScenario(scenarioId) {
         switch (scenarioId) {
             case "opening":
                 
