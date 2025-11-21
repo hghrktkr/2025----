@@ -5,6 +5,8 @@ import { PlayerStorage } from "../player/playerStorage";
 import { TEST_MODE } from "../configs/testModeFlag";
 import { PlayerManager } from "../player/playerManager";
 import { ScenarioManager } from "../scenario/scenarioManager";
+import { TransitionManager } from "../transitions/transitionManager";
+import { PlayerProgressManager } from "../player/playerProgressManager";
 
 export class GameManagerBase {
     constructor({ roomManager, config = {} } = {}) {
@@ -139,8 +141,8 @@ export class GameManagerBase {
          */
         async onRoomCleared(player) {
             this.currentProgress += 1;
-            const lvKey = PlayerManager.convertLvKey(this.currentLevel);
-            PlayerManager.setCurrentProgressForAll(this.gameKey, lvKey, this.currentProgress);
+            const lvKey = PlayerProgressManager.convertLvKey(this.currentLevel);
+            PlayerProgressManager.setCurrentProgressForAll(this.gameKey, lvKey);
 
             // イベントの発火
 
@@ -152,7 +154,7 @@ export class GameManagerBase {
                 // 次の部屋へ
                 // 部屋の生成
                 // const roomLocation = ... あとから
-                await this._proceedToNextRoom(roomLocation);
+                // await TransitionManager.openDoorSequence();
             }
         }
 
@@ -162,11 +164,11 @@ export class GameManagerBase {
          */
         async onRoomFailed(player) {
             this.currentProgress = 0;
-            const lvKey = PlayerManager.convertLvKey(this.currentLevel);
-            PlayerManager.setCurrentProgressForAll(this.gameKey, lvKey, this.currentProgress);
+            const lvKey = PlayerProgressManager.convertLvKey(this.currentLevel);
+            PlayerProgressManager.setCurrentProgressForAll(this.gameKey, lvKey);
             const playerData = PlayerStorage.get(player).data;
             const startRoomLocation = playerData.lastLocation;
-            this._proceedToNextRoom(startRoomLocation);
+            // await TransitionManager.openDoorSequence();
         }
 
         /**
@@ -175,10 +177,8 @@ export class GameManagerBase {
          */
         async exitGameRoom(player) {
             // const robbyLocation = ... あとから
-            this._setSpawnPointForAll(robbyLocation);
-            await this._openDoorSequence();
-            await this._teleportPlayers(robbyLocation);
-            await this._onEnteredRoomSequence();
+            PlayerManager.setSpawnPointForAll(robbyLocation);
+            // await TransitionManager.openDoorSequence();
         }
 
         
@@ -199,14 +199,12 @@ export class GameManagerBase {
             this.elapsedMs = this._stopTimer();
 
             // タイム保存
-            await _setClearResultForAll();
+            const lvKey = PlayerProgressManager.convertLvKey(this.currentLevel);
+            PlayerProgressManager.setCurrentProgressForAll(this.gameKey, lvKey);
             PlayerStorage.setDirtyPlayers();
 
             // ゴールルームへ
-            await this._openDoorSequence();
-            // const goalRoomLocation = ... あとから
-            await this._teleportPlayers(goalRoomLocaton);
-            await this._onEnteredRoomSequence();
+            // await openDoorSequence();
 
             // ゴール時のイベント発火
 
@@ -216,20 +214,6 @@ export class GameManagerBase {
             // ステート更新
             this.state = "ENDED"
         }
-
-        /**
-         * 次の部屋へ移動する処理
-         * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
-         */
-        async _proceedToNextRoom(roomLocation) {
-            if(this.debug) console.log(`next room number: ${this.currentProgress}`);
-
-            // 次の部屋へ移動処理
-            await this._openDoorSequence();
-            await this._teleportPlayers(roomLocation);
-            await this._onEnteredRoomSequence();
-        }
-
 
     /* -------------------------
     タイマー

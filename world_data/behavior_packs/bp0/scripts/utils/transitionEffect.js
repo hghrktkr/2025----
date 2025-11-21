@@ -1,3 +1,5 @@
+// 演出に関する関数群⇒TransitionManagerで使用
+
 import { InputPermissionCategory } from "@minecraft/server";
 import { TEST_MODE } from "../configs/testModeFlag";
 
