@@ -24,14 +24,14 @@ export class RoomManager {
             let room;
             switch(roomType) {
                 case "startRoom":
-                    room = this.getStartRoom();
+                    room = this._getStartRoom();
                     break;
                 case "goalRoom":
-                    room = this.getGoalRoom();
+                    room = this._getGoalRoom();
                     break;
                 case "gameRoom":
                     if(currentLevel === null) return null;
-                    room = this.getGameRoom(lvKey, isNormal);
+                    room = this._getGameRoom(lvKey, isNormal);
                     break;
                 default:
                     return null;
