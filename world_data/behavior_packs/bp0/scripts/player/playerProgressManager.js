@@ -38,8 +38,8 @@ export class PlayerProgressManager {
         for(const entry of PlayerStorage.players.values()) {
             const { data } = entry;
             data[scenarioId][lvKey].clearTime = time;
-            data.save.needsSave = true;
         }
+        PlayerStorage.setDirtyPlayers();
     }
 
     /**
@@ -52,8 +52,8 @@ export class PlayerProgressManager {
         for(const entry of PlayerStorage.players.values()) {
             const { data } = entry;
             data.scenario.currentScenarioId = scenarioId;
-            data.save.needsSave = true;
         }
+        PlayerStorage.setDirtyPlayers();
     }
 
     /**

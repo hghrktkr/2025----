@@ -55,15 +55,13 @@ class PlayerManager {
         }
     }
 
-    /** すべてのプレイヤーのlastLocationとスポーン位置を更新 */
+    /** すべてのプレイヤーのスポーン位置を更新 */
     static setSpawnPointForAll(dLocation) {
         if(TEST_MODE.CONFIG) console.log(`spawn point ( ${dLocation.x}, ${dLocation.y}, ${dLocation.z} ) dimension: ${dLocation.dimension}`);
         if(PlayerStorage.players.size === 0) return;
         for(const entry of PlayerStorage.players.values()) {
-            const { player, data } = entry;
-            data.lastLocation = dLocation;
+            const { player } = entry;
             player.setSpawnPoint(dLocation);
-            PlayerStorage.setDirtyPlayers();
             if(this.debug) console.log(`set spawn point of player ${player.name}`);
         }
     }

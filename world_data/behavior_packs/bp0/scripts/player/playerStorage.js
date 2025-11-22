@@ -9,7 +9,7 @@ export class PlayerStorage {
     static DATA_KEY = "edu:player_data";
 
     /** Dynamic Propertyをロード プレイヤーがワールドに参加した時実行 */
-    static loadPlayerData(player) {
+    static async loadPlayerData(player) {
         const playerDataJSON = player.getDynamicProperty(this.DATA_KEY);
         let playerData;
         if(playerDataJSON) {
@@ -29,7 +29,9 @@ export class PlayerStorage {
             console.log('プレイヤーデータ新規作成中...');
             playerData = new PlayerData(player);
         }
-        playerData.save.needsSave = true;
+        playerData.save.needsSave = true;   // セーブして更新
+        await player.teleport(playerData.spawnLocation);    // ロビーにテレポート
+        await player.setSpawnPoint(playerData.spawnLocation);   // スポーンポイントをロビーに
         this.players.set(player.id, { player, data: playerData });
     }
 

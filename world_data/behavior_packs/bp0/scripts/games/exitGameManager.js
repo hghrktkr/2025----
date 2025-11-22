@@ -19,7 +19,7 @@ export class ExitGameManager extends GameManagerBase {
      * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
      * @returns 
      */
-    async startGame(player) {
+    async startGame() {
         if(this.state !== "READY") {
             console.warn(`can't start game state = ${this.state}`);
             PlayerManager.teleportAllPlayersToLastLocation();
@@ -72,9 +72,8 @@ export class ExitGameManager extends GameManagerBase {
 
     /**
      * ゴール処理
-     * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
      */
-    async _onGoalReached(player) {
+    async _onGoalReached() {
         this.elapsedMs = this._stopTimer();
         PlayerProgressManager.setClearResultForAll(this.gameKey, this.currentLevel);
 

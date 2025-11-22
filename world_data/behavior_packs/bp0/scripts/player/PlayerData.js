@@ -14,7 +14,7 @@ export class PlayerData {
         // 基本情報
         this.id = player.id;
         this.name = player.name;
-        this.lastLocation = null; // {x, y, z, dimension} 次回の開始位置（進行中シナリオによって変動）
+        this.spawnLocation = null; // {x, y, z, dimension} ゲーム開始位置
 
         // シナリオ進行
         this.scenario = {
