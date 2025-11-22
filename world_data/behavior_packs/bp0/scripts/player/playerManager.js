@@ -63,6 +63,7 @@ class PlayerManager {
             const { player, data } = entry;
             data.lastLocation = dLocation;
             player.setSpawnPoint(dLocation);
+            PlayerStorage.setDirtyPlayers();
             if(this.debug) console.log(`set spawn point of player ${player.name}`);
         }
     }

@@ -18,7 +18,7 @@ export class GameManagerBase {
         this.roomManager = roomManager;
 
         // 状態
-        this.state = "INIT";                                    // INIT, LOADING, READY, TRANSITIONING, RUNNING, PAUSED, ENDED
+        this.state = "INIT";                                    // INIT, LOADING, READY, TRANSITIONING, RUNNING, PAUSED, RESUME, ENDED
         this.gameKey = null;                                    // game1, game2, game3
         this.currentLevel = 1;                                  // 1 - 3
         this.currentProgress = 0;                               // 部屋の進行度 スタートルーム:0 ゲームルーム:1～
@@ -50,7 +50,7 @@ export class GameManagerBase {
             const handlers = this.eventHandlers[eventName] || [];
             for (const h of handlers) {
                 try {
-                    await (payload);
+                    await h(payload);
                 } catch(e) {
                     console.warn(`${eventName} handler error`, e);
                 }
@@ -65,12 +65,20 @@ export class GameManagerBase {
         
         /**
          * 初期化
+         * @param {Player} 扉を開けたプレイヤー
          * @param {string} scenarioId game1/game2/game3
          */
-        async init(scenarioId) {
+        async init(player, scenarioId) {
+            if(this.state !== "INIT") {
+                console.warn(`can't start game state = ${this.state}`);
+                PlayerManager.teleportAllPlayersToLastLocation();
+                return;
+            }
             this.state = "LOADING";
             if(this.debug) console.log(`game state: ${this.state} for ${scenarioId}`);
             this.gameKey = scenarioId;
+            this.currentLevel = PlayerProgressManager.getGameLevel(player, this.gameKey);
+            PlayerManager.setSpawnPointForAll(startRoomLocation);
 
             // RoomManagerの初期化処理をあとから追記（非同期処理）
             // イベントハンドラに初期処理をadd
@@ -80,31 +88,6 @@ export class GameManagerBase {
             if(this.debug) console.log(`game state: ${this.state} for ${scenarioId}`);
             this.emit("ready", { scenarioId }); // 登録した初期処理発火
         }
-    
-
-
-        /**
-         * スタートルーム入室時の処理
-         * startRoomLocation設定、PlayerData更新、ゲームレベル取得
-         * @param {Player} player 扉を開けたプレイヤー(PlayerData取得用)
-         * @param {import("@minecraft/server").DimensionLocation} spawnLocation 
-         * @returns 
-         */
-        onEnterStartRoom(player, startRoomLocation) {
-            if(!PlayerStorage.players.has(player.id)) {
-                console.warn(`プレイヤーデータが見つかりません`);
-                return;
-            }
-            
-            // PlayerData更新→セーブ
-            PlayerManager.setSpawnPointForAll(startRoomLocation);
-            PlayerStorage.setDirtyPlayers();
-            
-            // ゲームレベルを取得
-            this.currentLevel = PlayerManager.getGameLevel(player, this.gameKey);
-        }
-
-
 
         /**
          * ゲーム開始の処理(ゲームルーム入室時)
@@ -113,7 +96,7 @@ export class GameManagerBase {
          * @returns 
          */
         async startGame(player) {
-            if(this.state !== "READY" || this.state === "PAUSED") {
+            if(this.state !== "READY") {
                 console.warn(`can't start game state = ${this.state}`);
                 PlayerManager.teleportAllPlayersToLastLocation();
                 return;
@@ -122,10 +105,7 @@ export class GameManagerBase {
             this.state = "TRANSITIONING";
             if(this.debug) console.log(`game state: ${this.state} for ${this.gameKey}`);
 
-            // 暗転と扉のSE
-            // テレポート処理
-            // 部屋の内装生成処理 あとから
-            // 暗転解除
+            // TransitionManager.openDoorSequence(roomLocation, );
 
             // タイマー開始
             this._startTimer();
@@ -141,8 +121,7 @@ export class GameManagerBase {
          */
         async onRoomCleared(player) {
             this.currentProgress += 1;
-            const lvKey = PlayerProgressManager.convertLvKey(this.currentLevel);
-            PlayerProgressManager.setCurrentProgressForAll(this.gameKey, lvKey);
+            PlayerProgressManager.setCurrentProgressForAll(this.gameKey, this.currentLevel);
 
             // イベントの発火
 
@@ -164,8 +143,7 @@ export class GameManagerBase {
          */
         async onRoomFailed(player) {
             this.currentProgress = 0;
-            const lvKey = PlayerProgressManager.convertLvKey(this.currentLevel);
-            PlayerProgressManager.setCurrentProgressForAll(this.gameKey, lvKey);
+            PlayerProgressManager.setCurrentProgressForAll(this.gameKey, this.currentLevel);
             const playerData = PlayerStorage.get(player).data;
             const startRoomLocation = playerData.lastLocation;
             // await TransitionManager.openDoorSequence();
@@ -199,9 +177,7 @@ export class GameManagerBase {
             this.elapsedMs = this._stopTimer();
 
             // タイム保存
-            const lvKey = PlayerProgressManager.convertLvKey(this.currentLevel);
-            PlayerProgressManager.setCurrentProgressForAll(this.gameKey, lvKey);
-            PlayerStorage.setDirtyPlayers();
+            PlayerProgressManager.setClearResultForAll(this.gameKey, this.currentLevel);
 
             // ゴールルームへ
             // await openDoorSequence();
@@ -220,13 +196,13 @@ export class GameManagerBase {
      ------------------------- */
         _startTimer() {
             if(this.timer && this.timer.running) this._stopTimer();
-            this.timer = { starAt: Date.now(), running: true };
-            if(this.debug) console.log(`timer started at ${this.timer.starAt}`);
+            this.timer = { startAt: Date.now(), running: true };
+            if(this.debug) console.log(`timer started at ${this.timer.startAt}`);
         }
 
         _stopTimer() {
             if(!this.timer || !this.timer.running) return 0;
-            const elapsed = Date.now() - this.timer.starAt;
+            const elapsed = Date.now() - this.timer.startAt;
             this.timer.running = false;
             if(this.debug) console.log(`timer stopped; time = ${elapsed}ms`);
             return elapsed;

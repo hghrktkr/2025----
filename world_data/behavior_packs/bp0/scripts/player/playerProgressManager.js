@@ -104,13 +104,14 @@ export class PlayerProgressManager {
      * @param {string} lvKey "lv1", "lv2", "lv3"
      * @param {number} progressNum 
      */
-    static setCurrentProgressForAll(gameKey, lvKey, progressNum) {
+    static setCurrentProgressForAll(gameKey, currentLevel, progressNum) {
         for(const entry of PlayerStorage.players.values()) {
             const { player, data } = entry;
             if(!data) {
                 console.warn(`can't find data of ${player.name}`);
                 continue;
             }
+            const lvKey = this.convertLvKey[currentLevel];
             data[gameKey][lvKey].currentProgress = progressNum;
         }
     }
@@ -121,9 +122,10 @@ export class PlayerProgressManager {
      * @param {string} gameKey "game1", "game2", "game3"
      * @param {number} lvKey "lv1", "lv2", "lv3"
      */
-    static setClearResultForAll(gameKey, lvKey) {
+    static setClearResultForAll(gameKey, currentLevel) {
         for(const entry of PlayerStorage.players.values()) {
             const { player, data: playerData } = entry;
+            const lvKey = this.convertLvKey(currentLevel);
             const gameProgress = playerData[gameKey][lvKey];
 
             gameProgress.cleared = true;
@@ -138,6 +140,7 @@ export class PlayerProgressManager {
             else {
                 this.addFlags(player, "bestTime", false);
             }
+            PlayerStorage.setDirtyPlayers();
         }
     }
 }
