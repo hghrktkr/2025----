@@ -102,6 +102,17 @@ const LOCATION_UTILS = (() => {
         };
     }
 
+    /**
+     * 指定した位置が空気ブロックかどうかを返す
+     * @param {string} dimension 
+     * @param {vector3} pos 
+     * @returns 
+     */
+    function isAir(dimension, pos) {
+        if(world.getDimension(dimension).getBlock(pos) === "minecraft:air") return true;
+        return false
+    }
+
     // 外部に公開する関数
     return {
         makeRandomPos,
@@ -110,7 +121,8 @@ const LOCATION_UTILS = (() => {
         distance,
         isWithinRange,
         getNpcPosition,
-        offsetPosition
+        offsetPosition,
+        isAir
     };
 })();
 

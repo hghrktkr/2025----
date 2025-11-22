@@ -3,9 +3,14 @@
 import { world } from "@minecraft/server";
 import { PlayerStorage } from "../player/playerStorage";
 import { PlayerManager } from "../player/playerManager";
+import { TEST_MODE } from "../configs/testModeFlag";
+import { RoomManager } from "../rooms/roomManager";
+import { game1Rooms } from "../configs/rooms/game1Rooms";
+import { ExitGameManager } from "../games/exitGameManager";
 
 export class ScenarioManager {
-    static SCENARIOS = [ 'opening', 'game1', 'game2', 'game3', 'ending' ];
+    static SCENARIOS = [ 'opening', 'game1', 'ending' ];    // 一旦ゲーム1つに
+    static currentGameManager = null;   // 進行中のゲーム
 
     static getCurrentScenarioId(player) {
         const playerData = PlayerStorage.get(player).data;
@@ -35,15 +40,26 @@ export class ScenarioManager {
         return true;
     }
 
-    /** 各シナリオ開始時の処理呼び出し */
+    /**
+     * 各シナリオ開始時の処理呼び出し
+     * @param {"opening"|"game1"|"game2"|"game3"|"ending"} scenarioId 
+     * @param {player} player 扉を開けたプレイヤー
+     */
     static onEnterScenario(scenarioId) {
-        switch (scenarioId) {
+        switch (scenarioId, player) {
             case "opening":
+                if(TEST_MODE.CONFIG) console.log(`entered opening`);
                 
                 break;
             
             case "game1":
+                if(TEST_MODE.CONFIG) console.log(`entered game1`);
 
+                const roomManager = new RoomManager(game1Rooms);
+                this.currentGameManager = new ExitGameManager({gameKey: scenarioId, roomManager});
+
+                // 初期化・スタートルームへ
+                gameManager.init(player);
                 break;
             
             case "game2":
@@ -55,6 +71,7 @@ export class ScenarioManager {
                 break;
             
             case "ending":
+                if(TEST_MODE.CONFIG) console.log(`entered ending`);
 
                 break;
 
@@ -62,6 +79,27 @@ export class ScenarioManager {
                 console.warn(`無効なシナリオが参照されました ${scenarioId}`);
                 break;
         }
+    }
+
+    /** 扉を開けたときに呼び出す */
+    static onDoorOpened(player) {
+        const gameManager = this.gameManagers.get(player.id);
+        if(!gameManager) return;
+
+        // ExitGameManager が正しい部屋か判定して処理
+        gameManager.onRoomCleared(player);
+    }
+
+    /** 扉イベントの購読 */
+    static subscribeDoorTrigger() {
+        world.beforeEvents.blockActivate.subscribe(ev => {
+            const player = ev.source;
+            // 扉判定: 任意の条件で扉ブロックか確認
+            if(ev.block.typeId.includes("door")) {
+                ev.cancel = true; // デフォルトの扉開閉をキャンセル
+                this.onDoorOpened(player);
+            }
+        });
     }
 
     /** 棒を使うとシナリオを次へ進める */
