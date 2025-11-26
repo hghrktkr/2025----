@@ -1,22 +1,16 @@
 // 各ゲーム進行の基底クラス
 
-import { Player } from "@minecraft/server";
 import { TEST_MODE } from "../configs/testModeFlag";
-import { PlayerManager } from "../player/playerManager";
-import { ScenarioManager } from "../scenario/scenarioManager";
-import { TransitionManager } from "../transitions/transitionManager";
-import { PlayerProgressManager } from "../player/playerProgressManager";
-import { gameSpawnLocation } from "../configs/playerConfig";
 
 export class GameManagerBase {
-    constructor({ gameKey, roomManager, roomInfo, config = {} } = {}) {
+    constructor({ gameKey, roomSizeInfo, config = {} } = {}) {
 
         // デバッグ用コンソールのON/OFF
         this.debug = TEST_MODE.CONFIG;
 
         // RoomManager
-        this.roomManager = roomManager;
-        this.roomInfo = roomInfo;
+        this.roomManager = null;                                // 子クラスでセット
+        this.roomSizeInfo = roomSizeInfo;
 
         // 状態
         this.state = "INIT";                                    // INIT, LOADING, READY, TRANSITIONING, RUNNING, PAUSED, RESUME, ENDED
@@ -56,37 +50,6 @@ export class GameManagerBase {
                     console.warn(`${eventName} handler error`, e);
                 }
             }
-        }
-    
-    /* ------------------------- 
-    ゲーム進行関係 
-    ------------------------- */
-        /** * 初期化 
-         * @param {Player} 扉を開けたプレイヤー 
-         * */
-        async init(player) { 
-            // INIT状態以外の場合、ロビーへテレポート
-            if(this.state !== "INIT") { 
-                console.warn(`can't start game state = ${this.state}`);
-                PlayerManager.teleportAllPlayersToLastLocation();
-                return;
-            }
-            
-            this.state = "LOADING";
-            if(this.debug) console.log(`game state: ${this.state} for ${this.gameKey}`);
-
-            // レベルの取得・スポーン位置設定
-            this.currentLevel = PlayerProgressManager.getGameLevel(player, this.gameKey);
-            const startRoomLocation = gameSpawnLocation;
-            PlayerManager.setSpawnPointForAll(startRoomLocation);
-            
-            this.state = "READY";
-            if(this.debug) console.log(`game state: ${this.state} for ${this.gameKey}`);
-            // 部屋生成、移動シーケンス
-            await TransitionManager.openDoorSequence( 
-                startRoomLocation,
-                () => this.roomManager.generateRoom("startRoom")
-            );
         }
 
     /* -------------------------
