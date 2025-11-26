@@ -6,6 +6,7 @@ import { PlayerManager } from "../player/playerManager";
 import { ScenarioManager } from "../scenario/scenarioManager";
 import { TransitionManager } from "../transitions/transitionManager";
 import { PlayerProgressManager } from "../player/playerProgressManager";
+import { gameSpawnLocation } from "../configs/playerConfig";
 
 export class GameManagerBase {
     constructor({ gameKey, roomManager, roomInfo, config = {} } = {}) {
@@ -64,6 +65,7 @@ export class GameManagerBase {
          * @param {Player} 扉を開けたプレイヤー 
          * */
         async init(player) { 
+            // INIT状態以外の場合、ロビーへテレポート
             if(this.state !== "INIT") { 
                 console.warn(`can't start game state = ${this.state}`);
                 PlayerManager.teleportAllPlayersToLastLocation();
@@ -75,7 +77,7 @@ export class GameManagerBase {
 
             // レベルの取得・スポーン位置設定
             this.currentLevel = PlayerProgressManager.getGameLevel(player, this.gameKey);
-            const startRoomLocation = this.roomManager.getSpawnLocation("startRoom");
+            const startRoomLocation = gameSpawnLocation;
             PlayerManager.setSpawnPointForAll(startRoomLocation);
             
             this.state = "READY";

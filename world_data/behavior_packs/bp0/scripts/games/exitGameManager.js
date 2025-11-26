@@ -4,6 +4,7 @@ import { GameManagerBase } from "./gameManagerBase";
 import { PlayerProgressManager } from "../player/playerProgressManager";
 import { PlayerManager } from "../player/playerManager";
 import { TransitionManager } from "../transitions/transitionManager";
+import { gameSpawnLocation, lobbySpawnLocation } from "../configs/playerConfig";
 
 export class ExitGameManager extends GameManagerBase {
     constructor(options) {
@@ -27,10 +28,9 @@ export class ExitGameManager extends GameManagerBase {
         }
         this.state = "TRANSITIONING";
 
-        const isNormal = Math.random() < 0.5;
         await TransitionManager.openDoorSequence(
-            this.roomManager.getSpawnLocation("gameRoom", this.currentLevel, isNormal),
-            () => this.roomManager.generateRoom("gameRoom", this.currentLevel, isNormal)
+            gameSpawnLocation,
+            () => this.roomManager.generateRoom("gameRoom", this.currentLevel)
         );
 
         this._startTimer();
@@ -49,10 +49,9 @@ export class ExitGameManager extends GameManagerBase {
         if(this.currentProgress > this.requiredRoomCount) {
             await this._onGoalReached(player);
         } else {
-            const isNormal = Math.random() < 0.5;
             await TransitionManager.openDoorSequence(
-                this.roomManager.getSpawnLocation("gameRoom", this.currentLevel, isNormal),
-                () => this.roomManager.generateRoom("gameRoom", this.currentLevel, isNormal)
+                gameSpawnLocation,
+                () => this.roomManager.generateRoom("gameRoom", this.currentLevel)
             );
         }
     }
@@ -65,7 +64,7 @@ export class ExitGameManager extends GameManagerBase {
         this.currentProgress = 0;
         PlayerProgressManager.setCurrentProgressForAll(this.gameKey, this.currentLevel);
         await TransitionManager.openDoorSequence(
-            this.roomManager.getSpawnLocation("startRoom"),
+            gameSpawnLocation,
             () => this.roomManager.generateRoom("startRoom")
         );
     }
@@ -78,7 +77,7 @@ export class ExitGameManager extends GameManagerBase {
         PlayerProgressManager.setClearResultForAll(this.gameKey, this.currentLevel);
 
         await TransitionManager.openDoorSequence(
-            this.roomManager.getSpawnLocation("goalRoom"),
+            lobbySpawnLocation,
             () => this.roomManager.generateRoom("goalRoom")
         );
 

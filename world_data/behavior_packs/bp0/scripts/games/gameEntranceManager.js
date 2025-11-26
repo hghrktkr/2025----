@@ -1,4 +1,5 @@
 // ロビーの扉を開けた時だけゲームを生成する
+import { world } from "@minecraft/server";
 import { ScenarioManager } from "../scenario/scenarioManager";
 import { ExitGameManager } from "../games/exitGameManager";
 import { MissionGameManager } from "../games/missionGameManager";
@@ -7,29 +8,23 @@ export class GameEntranceManager {
 
     /** プレイヤーが扉をインタラクトしたとき */
     static init() {
-        world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
-            const block = ev.block;
-            const player = ev.player;
+        world.afterEvents.dataDrivenEntityTrigger.subscribe((ev) => {
+            const { entity, eventId } = ev;
+            if(!eventId.startsWith("edu:enter_")) return;
+            if(!entity.isPlayer) return;
+            let gameKey;
 
-            //扉に紐づいたgameKeyを取得 "game1"|"game2"|"game3"
-            const gameKey = this.getGameKeyFromDoor(block);
-            if (!gameKey) return;
-
-            ev.cancel = true;
-
-            // GameManagerを生成して開始
-            this.startGame(player, gameKey);
-        });
-    }
-
-    /** blockのtagに紐づいたgameKeyを取得 */
-    static getGameKeyFromDoor(block) {
-        const tags = block.getTags();
-        if (tags.includes("game1-door")) return "game1";
-        if (tags.includes("game2-door")) return "game2";
-        if (tags.includes("game3-door")) return "game3";
-        if (tags.includes("ending-door")) return "ending";
-        return null;
+            switch (eventId) {
+                case "edu:enter_game1":
+                    gameKey = "game1";
+                    break;
+            
+                default:
+                    break;
+            }
+            if(!gameKey) return;
+            this.startGame(entity, gameKey);
+        })
     }
 
     /** gameKeyに応じたGameManagerインスタンスを生成 */
