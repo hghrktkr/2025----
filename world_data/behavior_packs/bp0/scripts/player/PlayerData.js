@@ -9,7 +9,7 @@ function createGameProgress() {
         lv1: { cleared: false, currentProgress: 0, clearTime: 0 },
         lv2: { cleared: false, currentProgress: 0, clearTime: 0 },
         lv3: { cleared: false, currentProgress: 0, clearTime: 0 },
-        spawnLocation: gameSpawnLocation;
+        spawnLocation: gameSpawnLocation
     };
 }
 

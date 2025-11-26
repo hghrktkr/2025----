@@ -4,12 +4,13 @@ import { GameManagerBase } from "./gameManagerBase";
 import { PlayerProgressManager } from "../player/playerProgressManager";
 import { PlayerManager } from "../player/playerManager";
 import { TransitionManager } from "../transitions/transitionManager";
-import { gameSpawnLocation } from "../configs/playerConfig";
+import { gameSpawnLocation, lobbySpawnLocation } from "../configs/playerConfig";
 import FurnitureGenerator from "../rooms/exitGameRooms/furnitureGenerator";
 import { anormalRoomBlocks, unlockableBlocks } from "../configs/rooms/exitGameRoomBlocks/anormalRoomBlocks";
 import { normalRoomBlocks } from "../configs/rooms/exitGameRoomBlocks/normalRoomBlocks";
 import { exitGameBlockPos } from "../configs/rooms/exitGameRoomBlocks/exitGameBlockPos";
 import { roomSizeInfo } from "../configs/rooms/roomSizeInfo";
+import { PlayerStorage } from "../player/playerStorage";
 
 export class ExitGameManager extends GameManagerBase {
     constructor(options) {
@@ -259,4 +260,27 @@ export class ExitGameManager extends GameManagerBase {
             // シナリオ進行などはここで発火
             this.state = "ENDED";
         }
+
+        /** ロビーへ戻る処理 */
+        static async quitGame(player) {
+            
+            const entry = PlayerStorage.get(player);
+            if (!entry) return;
+            const { data: playerData } = entry;
+
+            // 進行度のリセット・セーブ
+            PlayerProgressManager.setCurrentProgressForAll(this.gameKey, this.currentLevel, 0);
+            // spawnLocationをリセット
+            PlayerManager.setSpawnPointForAll(lobbySpawnLocation);
+            PlayerStorage.setDirtyPlayers();
+
+            // ロビーへ移動シーケンス
+            await TransitionManager.openDoorSequence(
+                lobbySpawnLocation,
+                () => {}
+            );
+
+        }
+
+
 }
