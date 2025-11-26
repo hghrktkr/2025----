@@ -2,21 +2,24 @@ import { world } from "@minecraft/server";
 
 // 部屋の通常部屋の各パーツを生成する
 class FurnitureGenerator {
-    constructor(blockTypes, positions) {
+    constructor(key,blockTypes, positions) {
 
         /**
+         * @param {string} key - このgeneratorのキー
          * @param {string|string[]} blockTypes - 設置するブロック（単数 or 複数）
          * @param {Object|Object[]} positions - 相対座標（単数 or 複数）
          */
 
+        this.key = key;
         this.blockTypes = Array.isArray(blockTypes) ? blockTypes : [blockTypes];
         this.positions = Array.isArray(positions) ? positions : [positions];
     }
 
     /** 指定されたブロックを指定された位置に設置 */
-    generate({ startPos }) {
+    generate({ startPos}) {
         const dim = world.getDimension("overworld");
-        // blockTypes の中からランダムに 1 つ選択
+
+        // blockTypesの中に複数のブロックがある場合はランダムに1つ選択
         const chosenType =
             this.blockTypes[Math.floor(Math.random() * this.blockTypes.length)];
 

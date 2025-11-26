@@ -1,15 +1,13 @@
 // プレイヤーの保存用データ設計
 
-import { world } from "@minecraft/server";
 import { gameSpawnLocation, lobbySpawnLocation } from "../configs/playerConfig";
 
 
 function createGameProgress() {
     return {
-        lv1: { cleared: false, currentProgress: 0, clearTime: 0 },
-        lv2: { cleared: false, currentProgress: 0, clearTime: 0 },
-        lv3: { cleared: false, currentProgress: 0, clearTime: 0 },
-        spawnLocation: gameSpawnLocation
+        lv1: { cleared: false, clearTime: 0 },
+        lv2: { cleared: false, clearTime: 0 },
+        lv3: { cleared: false, clearTime: 0 }
     };
 }
 
@@ -18,7 +16,7 @@ export class PlayerData {
         // 基本情報
         this.id = player.id;
         this.name = player.name;
-        this.spawnLocation = lobbySpawnLocation;
+        this.lastLocation = lobbySpawnLocation;
 
         // シナリオ進行
         this.scenario = {

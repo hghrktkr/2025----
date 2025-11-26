@@ -6,11 +6,12 @@ export class PlayerProgressManager {
     /**
      * すべてのプレイヤーの指定したレベルをクリアに
      * @param {string} scenarioId "game1", "game2", "game3"
-     * @param {string} lvKey "lv1", "lv2", "lv3"
+     * @param {number} currentLevel レベル番号(1,2,3)
      */
-    static setCleared(scenarioId, lvKey) {
+    static setCleared(scenarioId, currentLevel) {
         for(const entry of PlayerStorage.players.values()) {
             const { data } = entry;
+            const lvKey = this.convertLvKey(currentLevel);
             data[scenarioId][lvKey].cleared = true;
             data.save.needsSave = true;
         }
@@ -20,23 +21,25 @@ export class PlayerProgressManager {
      * プレイヤーのclearedTimeを取得
      * @param {Player} player 
      * @param {string} scenarioId "game1", "game2", "game3"
-     * @param {string} lvKey "lv1", "lv2", "lv3"
+     * @param {number} currentLevel レベル番号(1,2,3)
      * @returns 
      */
-    static getClearTime(player, scenarioId, lvKey) {
+    static getClearTime(player, scenarioId, currentLevel) {
         const playerData =  PlayerStorage.get(player).data;
+        const lvKey = this.convertLvKey(currentLevel);
         return playerData[scenarioId][lvKey].clearTime;
     }
 
     /**
      * すべてのプレイヤーのclearedTimeを更新
      * @param {string} scenarioId "game1", "game2", "game3"
-     * @param {string} lvKey "lv1", "lv2", "lv3"
+     * @param {number} currentLevel レベル番号(1,2,3)
      * @param {number} time 
      */
-    static setClearTime(scenarioId, lvKey, time) {
+    static setClearTime(scenarioId, currentLevel, time) {
         for(const entry of PlayerStorage.players.values()) {
             const { data } = entry;
+            const lvKey = this.convertLvKey(currentLevel);
             data[scenarioId][lvKey].clearTime = time;
         }
         PlayerStorage.setDirtyPlayers();
@@ -99,28 +102,10 @@ export class PlayerProgressManager {
     }
 
     /**
-     * すべてのプレイヤーの指定されたゲーム、レベルの進捗を更新
-     * @param {string} gameKey "game1", "game2", "game3"
-     * @param {string} lvKey "lv1", "lv2", "lv3"
-     * @param {number} progressNum 
-     */
-    static setCurrentProgressForAll(gameKey, currentLevel, progressNum) {
-        for(const entry of PlayerStorage.players.values()) {
-            const { player, data } = entry;
-            if(!data) {
-                console.warn(`can't find data of ${player.name}`);
-                continue;
-            }
-            const lvKey = this.convertLvKey[currentLevel];
-            data[gameKey][lvKey].currentProgress = progressNum;
-        }
-    }
-
-    /**
      * すべてのプレイヤーのクリア処理
      * clearedをtrueに、ベストタイムの場合は更新、progressを0にリセット
      * @param {string} gameKey "game1", "game2", "game3"
-     * @param {number} lvKey "lv1", "lv2", "lv3"
+     * @param {number} currentLevel レベル番号(1,2,3)
      */
     static setClearResultForAll(gameKey, currentLevel) {
         for(const entry of PlayerStorage.players.values()) {
@@ -129,7 +114,6 @@ export class PlayerProgressManager {
             const gameProgress = playerData[gameKey][lvKey];
 
             gameProgress.cleared = true;
-            gameProgress.currentProgress = 0;
             const currentTime = gameProgress.clearTime; // 現在のベストタイムを取得
 
             if(currentTime !== 0 && this.elapsedMs < currentTime) {
