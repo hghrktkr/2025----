@@ -17,6 +17,7 @@ export class GameManagerBase {
         this.gameKey = gameKey;                                 // game1, game2, game3
         this.currentLevel = 1;                                  // 1 - 3
         this.currentProgress = 0;                               // 部屋の進行度 スタートルーム:0 ゲームルーム:1～
+        this.currentRoomType = null;                            // 部屋のタイプは子クラスでセット
         this.requiredRoomCount = config.requiredRoomCount || 3; // ゴールまでの部屋数(ゲームルームの数)
         this.timer = null;                                      // { startAt: number, running: bool }
         this.elapsedMs = 0;                                     // かかった時間

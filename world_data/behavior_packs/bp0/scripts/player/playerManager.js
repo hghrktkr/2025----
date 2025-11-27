@@ -5,6 +5,7 @@ import { TEST_MODE } from "../configs/testModeFlag";
 import { ScenarioManager } from "../scenario/scenarioManager";
 import { teleportToLastLocation } from "../utils/teleport";
 import { setCamera, setPermission } from "../utils/transitionEffect";
+import { PlayerData } from "./PlayerData";
 
 class PlayerManager {
     static TICK_SAVE_INTERVAL = 40; // セーブ処理を2秒ごとに実施
@@ -33,8 +34,11 @@ class PlayerManager {
     static teleportAllPlayers(dLocation) {
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
+            const dLoc = PlayerStorage.makeDimensionLocation(dLocation);
             try {
-                player.teleport(dLocation);
+                system.runTimeout(() => {
+                    player.teleport({x: dLoc.x, y: dLoc.y, z: dLoc.z});
+                }, 10); // 権限回避のため遅延
             } catch (error) {
                 console.warn(`teleport error occurred ${player.name}`, error);
             }
@@ -61,8 +65,25 @@ class PlayerManager {
         if(PlayerStorage.players.size === 0) return;
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
-            player.setSpawnPoint(dLocation);
+
+            // dimensionLocationへ変換
+            const dLoc = PlayerStorage.makeDimensionLocation(dLocation);
+            try {
+                system.runTimeout(() => {
+                    player.setSpawnPoint(dLoc);
+                }, 10);
+            } catch (error) {
+                console.warn(`can't set spawnPoint: ( ${dLoc.x}, ${dLoc.y}, ${dLoc.z}); dimension: ${dLoc.dimension}`, error);
+            }
             if(this.debug) console.log(`set spawn point of player ${player.name}`);
+        }
+    }
+
+    /** すべてのプレイヤーのscenarioId更新 */
+    static setScenarioId(scenarioId) {
+        for(const entry of PlayerStorage.players.values()) {
+            const { data } = entry;
+            data.scenario.currentScenarioId = scenarioId;
         }
     }
 
@@ -74,7 +95,9 @@ class PlayerManager {
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
             try {
-                setPermission(player, enabled);
+                system.runTimeout(() => {
+                    setPermission(player, enabled);
+                }, 5);
             } catch (error) {
                 console.warn(`permission denied`, error);
             }
@@ -90,7 +113,9 @@ class PlayerManager {
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
             try {
-                setCamera(player, cameraOption);
+                system.runTimeout(() => {
+                    setCamera(player, cameraOption);
+                },5);
             } catch (error) {
                 console.warn(`fade denied`, error);
             }
@@ -105,7 +130,9 @@ class PlayerManager {
     static playSoundForAll(soundId) {
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
-            player.playSound(soundId);
+            system.runTimeout(() => {
+                player.playSound(soundId);
+            });
         }
     }
 }

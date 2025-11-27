@@ -32,14 +32,12 @@ export class GameEntranceManager {
         switch (gameKey) {
             case "game1":
                 ScenarioManager.currentGameManager = new ExitGameManager({
-                    gameKey,
-                    roomManager: new RoomManager(game1Rooms),
+                    gameKey: gameKey
                 });
                 break;
             case "game2":
                 ScenarioManager.currentGameManager = new MissionGameManager({
-                    gameKey,
-                    roomManager: new RoomManager(game2Rooms),
+                    gameKey: gameKey
                 });
                 break;
         }

@@ -23,6 +23,11 @@ export class ExitGameManager extends GameManagerBase {
         this.currentProgress = 0;
         this.requiredRoomCount = options.config?.requiredRoomCount || 3;
         this.roomSizeInfo = roomSizeInfo.exitGameRoom;
+        this.currentRoomType = "normal";                // "normal" | "anormal"
+        this.correctDoorId = "front";                   // 正しい扉のId "front" | "back"
+        this.normalRoomGenerators = [];
+        this.anormalRoomGenerators = [];
+        this.anormalBlocksByLevel = {};
 
     }
 
@@ -110,20 +115,24 @@ export class ExitGameManager extends GameManagerBase {
 
         /** roomManagerをランダムにセット */
         setRandomRoomType() {
-            if (this.isNormalRoom()) {
-                this.roomManager = new RoomManager({
+            // 50%の確率で通常部屋
+            const isNormal = this.isNormalRoom();
+
+            // this.currentRoomTypeをセット
+            this.currentRoomType = isNormal ? "normal" : "anormal";
+            this.correctDoorId = isNormal ? "front" : "back";
+
+            // 判定に基づいてgensをセット
+            const gens = isNormal ? this.normalRoomGenerators : this.setRandomAnormal();
+
+            // roomManagerのセット
+            this.roomManager = new RoomManager({
                     startPos: this.roomSizeInfo.startPos,
                     size: this.roomSizeInfo.size,
-                    generators: this.normalRoomGenerators
-                });
-            } else {
-                const gens = this.setRandomAnormal();
-                this.roomManager = new RoomManager({
-                    startPos: this.roomSizeInfo.startPos,
-                    size: this.roomSizeInfo.size,
-                    generators: gens
-                });
-            }
+                    generators: gens,
+                    roomType: this.currentRoomType,
+                    correctDoorId: this.correctDoorId
+            });
         }
             
 
@@ -161,15 +170,17 @@ export class ExitGameManager extends GameManagerBase {
             this.anormalBlocksByLevel = this.getAnormalBlocksByLevel();
             this.normalRoomGenerators = this.setRoomGenerators(normalRoomBlocks, exitGameBlockPos);
             this.anormalRoomGenerators = this.setRoomGenerators(this.anormalBlocksByLevel, exitGameBlockPos);
-            
-            this.state = "READY";
-            if(this.debug) console.log(`game state: ${this.state} for ${this.gameKey}`);
 
             // roomManagerのセット 初めの部屋は全て通常部屋
+            this.currentRoomType = "normal";
+            this.correctDoorId = "front";
+
             this.roomManager = new RoomManager({
                 startPos: this.roomSizeInfo.startPos,
                 size: this.roomSizeInfo.size,
-                generators: this.normalRoomGenerators
+                generators: this.normalRoomGenerators,
+                roomType: this.currentRoomType,
+                correctDoorId: this.correctDoorId
             });
 
             // 部屋生成、移動シーケンス
@@ -177,6 +188,23 @@ export class ExitGameManager extends GameManagerBase {
                 startRoomLocation,
                 () => this.roomManager.generateRoom()
             );
+
+            // ドアの開閉イベント購読開始
+            this.roomManager.startListeningDoorEvents(({player, isCorrect}) => {
+                if(isCorrect) {
+                    this.startGame(player);
+                } else {
+                    this.quitGame(player);
+                }
+            });
+
+            // 準備ができたらイベント発火（タイトル・演出・BGM・ドアイベント）
+            this.state = "READY";
+            if(this.debug) console.log(`game state: ${this.state} for ${this.gameKey}`);
+            this.emit("gameReady", {
+                gameKey: this.gameKey,
+                currentLevel: this.currentLevel
+            });
         }
 
         /**
@@ -193,6 +221,9 @@ export class ExitGameManager extends GameManagerBase {
             }
             this.state = "TRANSITIONING";
 
+            // 扉の購読停止
+            this.roomManager.stopListeningDoorEvents();
+
             // 1つ目のゲームルーム生成
             this.currentProgress = 1;
 
@@ -204,9 +235,22 @@ export class ExitGameManager extends GameManagerBase {
                 () => this.roomManager.generateRoom()
             );
 
+            // ドアの開閉イベント購読開始
+            this.roomManager.startListeningDoorEvents(({player, isCorrect}) => {
+                if(isCorrect) {
+                    this.onRoomCleared(player);
+                } else {
+                    this.onRoomFailed(player);
+                }
+            });
+
             this._startTimer();
 
             this.state = "RUNNING";
+            this.emit("gameStarted", {
+                gameKey: this.gameKey,
+                currentLevel: this.currentLevel
+            });
         }
 
         /**
@@ -216,6 +260,10 @@ export class ExitGameManager extends GameManagerBase {
         async onRoomCleared(player) {
             this.currentProgress += 1;
 
+            // ドアの開閉イベント購読停止
+            this.roomManager.stopListeningDoorEvents();
+
+            // 部屋数がクリア数に達したか判定
             if(this.currentProgress > this.requiredRoomCount) {
                 await this._onGoalReached(player);
             } else {
@@ -227,6 +275,11 @@ export class ExitGameManager extends GameManagerBase {
                     this.roomSizeInfo.startPos,
                     () => this.roomManager.generateRoom()
                 );
+
+                this.emit("roomCleared", {
+                    gameKey: this.gameKey,
+                    currentLevel: this.currentLevel
+                });
             }
         }
 
@@ -238,16 +291,26 @@ export class ExitGameManager extends GameManagerBase {
             this.currentProgress = 0;
 
             // roomManagerのセット 初めの部屋は全て通常部屋
+            this.currentRoomType = "normal";
+            this.correctDoorId = "front";
+
             this.roomManager = new RoomManager({
                 startPos: this.roomSizeInfo.startPos,
                 size: this.roomSizeInfo.size,
-                generators: this.normalRoomGenerators
+                generators: this.normalRoomGenerators,
+                roomType: this.currentRoomType,
+                correctDoorId: this.correctDoorId
             });
 
             await TransitionManager.openDoorSequence(
                 gameSpawnLocation,
                 () => this.roomManager.generateRoom()
             );
+
+            this.emit("gameReady", {
+                gameKey: this.gameKey,
+                currentLevel: this.currentLevel
+            });
         }
 
         /**
@@ -276,8 +339,12 @@ export class ExitGameManager extends GameManagerBase {
             _stopTimer();
 
             // spawnLocationをリセット
-            PlayerManager.setSpawnPointForAll(lobbySpawnLocation);
+            const lobbyLoc = PlayerStorage.makeDimensionLocation(lobbySpawnLocation);
+            PlayerManager.setSpawnPointForAll(lobbyLoc);
+
+            // PlayerDataのSpawnLocationを更新
             PlayerStorage.setDirtyPlayers();
+
 
             // 現在のGameManagerインスタンスをクリア
             ScenarioManager.currentGameManager = null;
@@ -289,6 +356,8 @@ export class ExitGameManager extends GameManagerBase {
             );
 
         }
+
+
 
 
 }

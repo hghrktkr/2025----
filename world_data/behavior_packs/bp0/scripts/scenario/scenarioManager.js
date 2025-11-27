@@ -3,6 +3,9 @@
 import { world } from "@minecraft/server";
 import { PlayerStorage } from "../player/playerStorage";
 import { PlayerManager } from "../player/playerManager";
+import { TransitionManager } from "../transitions/transitionManager";
+import { roomSizeInfo } from "../configs/rooms/roomSizeInfo";
+import { GameEntranceManager } from "../games/gameEntranceManager";
 export class ScenarioManager {
     // GameEntranceManagerから注入
     static currentGameManager = null;
@@ -36,7 +39,7 @@ export class ScenarioManager {
     }
 
     /** scenarioIdに応じて演出イベントをトリガー */
-    static triggerScenarioEvent(scenarioId) {
+    static triggerScenarioEvent(scenarioId, player) {
         switch (scenarioId) {
             case "opening":
                 
@@ -47,6 +50,7 @@ export class ScenarioManager {
                 break;
 
             case "game1":
+                GameEntranceManager.startGame(player, scenarioId);
                 
                 break;
 
@@ -78,6 +82,7 @@ export class ScenarioManager {
                 if(canMoveToNextScenario) {
                     let currentScenarioId = this.getCurrentScenarioId(player);
                     console.log(`新しいシナリオ: ${currentScenarioId}`);
+                    this.triggerScenarioEvent(currentScenarioId, player);
                 }
                 else {
                     console.log(`最後のシナリオです ${currentScenarioId}`);

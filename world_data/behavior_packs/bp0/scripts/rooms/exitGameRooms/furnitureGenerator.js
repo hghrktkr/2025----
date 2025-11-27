@@ -29,8 +29,9 @@ class FurnitureGenerator {
                 y: startPos.y + rel.y,
                 z: startPos.z + rel.z,
             };
-
-            dim.getBlock(abs)?.setType(chosenType);
+            system.run(() => {
+                dim.getBlock(abs)?.setType(chosenType);
+            });
         }
     }
 }

@@ -13,15 +13,15 @@ export const initialItems = [
 // 基本のスポーン位置
 export const lobbySpawnLocation = {
     x: 846,
-    y: 121,
+    y: 121.5,
     z: -41,
-    dimension: world.getDimension("overworld")
+    dimension: "overworld"
 };
 
 // ゲーム開始時のスポーン位置
 export const gameSpawnLocation = {
-    x: 846,
+    x: 856,
     y: 121,
-    z: -41,
-    dimension: world.getDimension("overworld")
+    z: -89,
+    dimension: "overworld"
 };

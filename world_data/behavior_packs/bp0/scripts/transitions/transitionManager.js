@@ -10,7 +10,9 @@ export class TransitionManager {
         // フェードアウト
         PlayerManager.setPermissionForAll(false);
         PlayerManager.setCameraForAll("fade");
-        PlayerManager.playSoundForAll("edu:door_open");
+        const seList = ["edu:door_open1", "edu:door_open2", "edu:door_open3"];
+        const seId = Math.floor(Math.random() * seList.length);
+        PlayerManager.playSoundForAll(seList[seId]);
 
         // 部屋生成
         await generateRoomCallback();
@@ -19,6 +21,7 @@ export class TransitionManager {
         PlayerManager.teleportAllPlayers(nextLocation);
 
         // フェードイン
-        PlayerManager.setPermissionAndCameraForAll(true, "clear");
+        PlayerManager.setPermissionForAll(true);
+        PlayerManager.setCameraForAll("clear");
     }
 }

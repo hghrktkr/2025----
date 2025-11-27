@@ -1,6 +1,7 @@
 // プレイヤーの保存用データ設計
 
 import { gameSpawnLocation, lobbySpawnLocation } from "../configs/playerConfig";
+import { world } from "@minecraft/server";
 
 
 function createGameProgress() {
@@ -16,7 +17,7 @@ export class PlayerData {
         // 基本情報
         this.id = player.id;
         this.name = player.name;
-        this.lastLocation = lobbySpawnLocation;
+        this.spawnLocation = lobbySpawnLocation;
 
         // シナリオ進行
         this.scenario = {
@@ -42,7 +43,7 @@ export class PlayerData {
         return JSON.stringify({
             id: this.id,
             name: this.name,
-            lastLocation: this.lastLocation,
+            spawnLocation: this.spawnLocation,
             scenario: this.scenario,
             game1: this.game1,
             game2: this.game2,

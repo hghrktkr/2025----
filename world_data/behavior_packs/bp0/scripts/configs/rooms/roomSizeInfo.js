@@ -2,7 +2,7 @@
 
 export const roomSizeInfo = {
     exitGameRoom: {
-        startPos: { x: 840, y: 120, z: -50 },
-        size: { width: 20, height: 10, depth: 20 }
+        startPos: { x: 851, y: 121, z: -98 },
+        size: { width: 11, height: 11, depth: 11 }
     }
 };

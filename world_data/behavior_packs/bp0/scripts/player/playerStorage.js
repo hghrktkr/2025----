@@ -1,15 +1,17 @@
 // PlayerDataの永続化処理
 // カプセル化のためクラスにしているが、基本的にstaticのみ
 
+import { world } from "@minecraft/server";
 import { PlayerData } from "./PlayerData";
 import { TEST_MODE } from "../configs/testModeFlag";
+import { system } from "@minecraft/server";
 
 export class PlayerStorage {
     static players = new Map(); // key: playerId, value: { Player, data: PlayerData } ゲーム中の参照用
     static DATA_KEY = "edu:player_data";
 
     /** Dynamic Propertyをロード プレイヤーがワールドに参加した時実行 */
-    static async loadPlayerData(player) {
+    static loadPlayerData(player) {
         const playerDataJSON = player.getDynamicProperty(this.DATA_KEY);
         let playerData;
         if(playerDataJSON) {
@@ -30,9 +32,14 @@ export class PlayerStorage {
             playerData = new PlayerData(player);
         }
         playerData.save.needsSave = true;   // セーブして更新
-        await player.teleport(playerData.spawnLocation);    // ロビーにテレポート
-        await player.setSpawnPoint(playerData.spawnLocation);   // スポーンポイントをロビーに
+        const dLoc = this.makeDimensionLocation(playerData.spawnLocation);
+        console.log(`teleport to ( ${dLoc.x}, ${dLoc.y}, ${dLoc.z} )`);
         this.players.set(player.id, { player, data: playerData });
+
+        system.runTimeout(() => {
+            player.teleport({x: dLoc.x, y: dLoc.y, z: dLoc.z});    // ロビーにテレポート
+            player.setSpawnPoint(dLoc);   // スポーンポイントをロビーに
+        }, 10); // 権限問題回避のため遅延
     }
 
     /** プレイヤーデータをjson化してDynamic Propertyにセーブ */
@@ -84,5 +91,14 @@ export class PlayerStorage {
 
     static get(player) {
         return this.players.get(player.id);
+    }
+
+    static makeDimensionLocation(data) {
+        return {
+            dimension: world.getDimension(data.dimension),
+            x: data.x,
+            y: data.y,
+            z: data.z
+        };
     }
 }
