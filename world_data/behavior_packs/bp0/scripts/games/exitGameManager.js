@@ -29,7 +29,7 @@ export class ExitGameManager extends GameManagerBase {
         this.normalRoomGenerators = [];
         this.anormalRoomGenerators = [];
         this.anormalBlocksByLevel = {};
-
+        this.normalRate = 0.3;                          // 通常部屋が生成される確率
     }
 
 
@@ -111,7 +111,7 @@ export class ExitGameManager extends GameManagerBase {
 
         /** 50%の確率で通常部屋を返す */
         isNormalRoom() {
-            return Math.random() < 0.5;
+            return Math.random() < this.normalRate;
         }
 
         /** roomManagerをランダムにセット */
@@ -185,7 +185,7 @@ export class ExitGameManager extends GameManagerBase {
 
             // 部屋生成、移動シーケンス
             await TransitionManager.openDoorSequence( 
-                startRoomLocation,
+                gameSpawnLocation,
                 () => this.roomManager.generateRoom()
             );
 
