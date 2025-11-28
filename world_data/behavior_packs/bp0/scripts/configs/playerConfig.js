@@ -1,5 +1,3 @@
-import { world } from "@minecraft/server";
-
 // プレイヤーに関する設定
 export const initialItems = [
     {
@@ -15,6 +13,8 @@ export const lobbySpawnLocation = {
     x: 846,
     y: 121.5,
     z: -41,
+    yaw: 180,
+    pitch: 5,
     dimension: "overworld"
 };
 
@@ -23,5 +23,7 @@ export const gameSpawnLocation = {
     x: 856,
     y: 121,
     z: -89,
+    yaw: 180,
+    pitch: 0,
     dimension: "overworld"
 };

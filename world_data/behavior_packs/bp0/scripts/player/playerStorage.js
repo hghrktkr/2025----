@@ -13,6 +13,7 @@ export class PlayerStorage {
     /** Dynamic Propertyをロード プレイヤーがワールドに参加した時実行 */
     static loadPlayerData(player) {
         const playerDataJSON = player.getDynamicProperty(this.DATA_KEY);
+
         let playerData;
         if(playerDataJSON) {
             try {
@@ -31,8 +32,19 @@ export class PlayerStorage {
             console.log('プレイヤーデータ新規作成中...');
             playerData = new PlayerData(player);
         }
+
         playerData.save.needsSave = true;   // セーブして更新
-        const dLoc = this.makeDimensionLocation(playerData.spawnLocation);
+
+        // dimensionLocation作成
+        const spawnData = playerData.spawnLocation;
+
+        const dLoc = {
+            dimension: spawnData.dimension,
+            x: spawnData.x,
+            y: spawnData.y,
+            z: spawnData.z
+        };
+
         console.log(`teleport to ( ${dLoc.x}, ${dLoc.y}, ${dLoc.z} )`);
         this.players.set(player.id, { player, data: playerData });
 
@@ -94,6 +106,7 @@ export class PlayerStorage {
     }
 
     static makeDimensionLocation(data) {
+        if(typeof data.dimension !== String) return;
         return {
             dimension: world.getDimension(data.dimension),
             x: data.x,

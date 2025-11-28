@@ -31,14 +31,24 @@ class PlayerManager {
      * すべてのプレイヤーを指定の場所にテレポート
      * @param {import("@minecraft/server").DimensionLocation} dLocation 
      */
-    static teleportAllPlayers(dLocation) {
+    static teleportAllPlayers(locationData) {
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
-            const dLoc = PlayerStorage.makeDimensionLocation(dLocation);
+            const dim = world.getDimension(locationData.dimension);
+
             try {
-                system.runTimeout(() => {
-                    player.teleport({x: dLoc.x, y: dLoc.y, z: dLoc.z});
-                }, 10); // 権限回避のため遅延
+                system.run(() => {
+                    player.teleport(
+                        {x: dLoc.x, y: dLoc.y, z: dLoc.z},
+                        {
+                            dimension: dim ?? world.getDimension("overworld"),
+                            rotation: {
+                                yaw: locationData.yaw ?? 0,
+                                pitch: locationData.pitch ?? 0
+                            }
+                        }
+                    );
+                });
             } catch (error) {
                 console.warn(`teleport error occurred ${player.name}`, error);
             }
@@ -62,19 +72,28 @@ class PlayerManager {
     /** すべてのプレイヤーのスポーン位置を更新 */
     static setSpawnPointForAll(dLocation) {
         if(TEST_MODE.CONFIG) console.log(`spawn point ( ${dLocation.x}, ${dLocation.y}, ${dLocation.z} ) dimension: ${dLocation.dimension}`);
+
+        // dimensionLocation作成
+        const dLoc = {
+            dimension: dLocation.dimension,
+            x: dLocation.x,
+            y: dLocation.y,
+            z: dLocation.z
+        }
+
         if(PlayerStorage.players.size === 0) return;
+
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
 
-            // dimensionLocationへ変換
-            const dLoc = PlayerStorage.makeDimensionLocation(dLocation);
             try {
-                system.runTimeout(() => {
+                system.run(() => {
                     player.setSpawnPoint(dLoc);
-                }, 10);
+                });
             } catch (error) {
                 console.warn(`can't set spawnPoint: ( ${dLoc.x}, ${dLoc.y}, ${dLoc.z}); dimension: ${dLoc.dimension}`, error);
             }
+
             if(this.debug) console.log(`set spawn point of player ${player.name}`);
         }
     }
@@ -95,9 +114,9 @@ class PlayerManager {
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
             try {
-                system.runTimeout(() => {
+                system.run(() => {
                     setPermission(player, enabled);
-                }, 5);
+                });
             } catch (error) {
                 console.warn(`permission denied`, error);
             }
@@ -113,9 +132,9 @@ class PlayerManager {
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
             try {
-                system.runTimeout(() => {
+                system.run(() => {
                     setCamera(player, cameraOption);
-                },5);
+                });
             } catch (error) {
                 console.warn(`fade denied`, error);
             }
@@ -130,7 +149,7 @@ class PlayerManager {
     static playSoundForAll(soundId) {
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
-            system.runTimeout(() => {
+            system.run(() => {
                 player.playSound(soundId);
             });
         }

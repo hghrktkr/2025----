@@ -13,6 +13,7 @@ import { roomSizeInfo } from "../configs/rooms/roomSizeInfo";
 import { PlayerStorage } from "../player/playerStorage";
 import { ScenarioManager } from "../scenario/scenarioManager";
 import { RoomManager } from "../rooms/roomManager";
+import { TEST_MODE } from "../configs/testModeFlag";
 
 // 脱出型ゲーム管理クラス
 
@@ -191,15 +192,18 @@ export class ExitGameManager extends GameManagerBase {
 
             // ドアの開閉イベント購読開始
             this.roomManager.startListeningDoorEvents(({player, isCorrect}) => {
+                if(TEST_MODE.CONFIG) console.log(`player name: ${player.name}; isCorrect: ${isCorrect}`);
+
                 if(isCorrect) {
+                    this.state = "READY";
                     this.startGame(player);
                 } else {
-                    this.quitGame(player);
+                    this.quitGame();
                 }
             });
 
             // 準備ができたらイベント発火（タイトル・演出・BGM・ドアイベント）
-            this.state = "READY";
+            
             if(this.debug) console.log(`game state: ${this.state} for ${this.gameKey}`);
             this.emit("gameReady", {
                 gameKey: this.gameKey,
@@ -226,27 +230,29 @@ export class ExitGameManager extends GameManagerBase {
 
             // 1つ目のゲームルーム生成
             this.currentProgress = 1;
+            if(TEST_MODE.CONFIG) console.log(`current progress: ${this.currentProgress}`);
 
             // roomManagerをランダムにセット
             this.setRandomRoomType();
             
             await TransitionManager.openDoorSequence(
-                this.roomSizeInfo.startPos,
+                gameSpawnLocation,
                 () => this.roomManager.generateRoom()
             );
+
+            // タイマースタート
+            this._startTimer();
 
             // ドアの開閉イベント購読開始
             this.roomManager.startListeningDoorEvents(({player, isCorrect}) => {
                 if(isCorrect) {
+                    this.state = "RUNNING";
                     this.onRoomCleared(player);
                 } else {
                     this.onRoomFailed(player);
                 }
             });
 
-            this._startTimer();
-
-            this.state = "RUNNING";
             this.emit("gameStarted", {
                 gameKey: this.gameKey,
                 currentLevel: this.currentLevel
@@ -272,7 +278,7 @@ export class ExitGameManager extends GameManagerBase {
                 this.setRandomRoomType();
 
                 await TransitionManager.openDoorSequence(
-                    this.roomSizeInfo.startPos,
+                    gameSpawnLocation,
                     () => this.roomManager.generateRoom()
                 );
 
@@ -333,7 +339,7 @@ export class ExitGameManager extends GameManagerBase {
         }
 
         /** ロビーへ戻る処理 */
-        static async quitGame(player) {
+        async quitGame() {
 
             // タイマーが起動していた場合はストップ
             _stopTimer();

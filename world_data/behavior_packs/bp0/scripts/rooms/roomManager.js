@@ -52,7 +52,7 @@ export class RoomManager {
      */
     startListeningDoorEvents(callback) {
         // 既存リスナーの削除
-        if(this.doorEventListener) this.doorEventListener.unsubscribe();
+        if(this.doorEventListener) this.doorEventListener.unsubscribe(this.doorEventListener);
 
         // 扉の開閉検知イベントの登録
         this.doorEventListener = world.afterEvents.playerInteractWithBlock.subscribe(ev => {
@@ -75,8 +75,8 @@ export class RoomManager {
 
     /** ドアの開閉イベント購読停止 */
     stopListeningDoorEvents() {
-        if(this.doorEventListener) {
-            this.doorEventListener.unsubscribe();
+        if(this.doorEventListener !== null) {
+            world.afterEvents.playerInteractWithBlock.unsubscribe(this.doorEventListener);
             this.doorEventListener = null;
         }
     }
