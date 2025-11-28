@@ -20,8 +20,8 @@ function teleportToLastLocation(player, playerData) {
         {
             dimension: dim ?? world.getDimension("overworld"),
             rotation: {
-                yaw: lastLocation.yaw ?? 0,
-                pitch: lastLocation.pitch ?? 0
+                x: lastLocation.pitch ?? 0,
+                y: lastLocation.yaw ?? 0
             }
         }
     );

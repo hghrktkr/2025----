@@ -1,6 +1,6 @@
 // 部屋の生成・扉の監視
 
-import { world } from "@minecraft/server";
+import { system, world } from "@minecraft/server";
 import { exitGameDoorPos } from "../configs/rooms/exitGameRoomBlocks/exitGameDoorPos";
 
 export class RoomManager {
@@ -55,8 +55,9 @@ export class RoomManager {
         if(this.doorEventListener) this.doorEventListener.unsubscribe(this.doorEventListener);
 
         // 扉の開閉検知イベントの登録
-        this.doorEventListener = world.afterEvents.playerInteractWithBlock.subscribe(ev => {
+        this.doorEventListener = world.beforeEvents.playerInteractWithBlock.subscribe(ev => {
             const { block, player } = ev;
+            ev.cancel = true;
 
             for(const entry of this.doorList) {
                 if(
@@ -76,8 +77,10 @@ export class RoomManager {
     /** ドアの開閉イベント購読停止 */
     stopListeningDoorEvents() {
         if(this.doorEventListener !== null) {
-            world.afterEvents.playerInteractWithBlock.unsubscribe(this.doorEventListener);
-            this.doorEventListener = null;
+            system.run(() => {
+                world.beforeEvents.playerInteractWithBlock.unsubscribe(this.doorEventListener);
+                this.doorEventListener = null;
+            });
         }
     }
 }

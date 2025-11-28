@@ -29,6 +29,8 @@ class FurnitureGenerator {
                 y: startPos.y + rel.y,
                 z: startPos.z + rel.z,
             };
+
+            // 権限回避のためsystem.runで実行
             system.run(() => {
                 dim.getBlock(abs)?.setType(chosenType);
             });

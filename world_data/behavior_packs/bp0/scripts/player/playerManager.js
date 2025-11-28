@@ -29,22 +29,25 @@ class PlayerManager {
 
     /**
      * すべてのプレイヤーを指定の場所にテレポート
-     * @param {import("@minecraft/server").DimensionLocation} dLocation 
+     * @param {object} locationData 
      */
     static teleportAllPlayers(locationData) {
         for(const entry of PlayerStorage.players.values()) {
             const { player } = entry;
-            const dim = world.getDimension(locationData.dimension);
+            const dim = world.getDimension(locationData.dimension); 
+
+            if(TEST_MODE.CONFIG) console.log(`teleporting to ( ${locationData.x}, ${locationData.y}, ${locationData.z} ); dimension: ${locationData.dimension}`);
+            if(TEST_MODE.CONFIG && (locationData.yaw || locationData.pitch)) console.log(`yaw: ${locationData.yaw}; pitch: ${locationData.pitch}`);
 
             try {
                 system.run(() => {
                     player.teleport(
-                        {x: dLoc.x, y: dLoc.y, z: dLoc.z},
+                        {x: locationData.x, y: locationData.y, z: locationData.z},
                         {
                             dimension: dim ?? world.getDimension("overworld"),
                             rotation: {
-                                yaw: locationData.yaw ?? 0,
-                                pitch: locationData.pitch ?? 0
+                                x: locationData.pitch ?? 0,
+                                y: locationData.yaw ?? 0
                             }
                         }
                     );
@@ -75,7 +78,7 @@ class PlayerManager {
 
         // dimensionLocation作成
         const dLoc = {
-            dimension: dLocation.dimension,
+            dimension: world.getDimension(dLocation.dimension),
             x: dLocation.x,
             y: dLocation.y,
             z: dLocation.z

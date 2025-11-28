@@ -39,7 +39,7 @@ export class PlayerStorage {
         const spawnData = playerData.spawnLocation;
 
         const dLoc = {
-            dimension: spawnData.dimension,
+            dimension: world.getDimension(spawnData.dimension),
             x: spawnData.x,
             y: spawnData.y,
             z: spawnData.z

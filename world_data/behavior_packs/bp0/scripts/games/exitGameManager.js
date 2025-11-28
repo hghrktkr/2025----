@@ -164,8 +164,7 @@ export class ExitGameManager extends GameManagerBase {
             // レベルの取得・スポーン位置設定
             this.currentProgress = 0;
             this.currentLevel = PlayerProgressManager.getGameLevel(player, this.gameKey);
-            const startRoomLocation = gameSpawnLocation;
-            PlayerManager.setSpawnPointForAll(startRoomLocation);
+            PlayerManager.setSpawnPointForAll(gameSpawnLocation);
 
             // レベルに応じたgeneratorsのセット
             this.anormalBlocksByLevel = this.getAnormalBlocksByLevel();
@@ -189,6 +188,9 @@ export class ExitGameManager extends GameManagerBase {
                 startRoomLocation,
                 () => this.roomManager.generateRoom()
             );
+
+            if(this.debug) console.log(`current room: ${this.currentProgress}`);
+            if(this.debug) console.log(`current roomType: ${this.currentRoomType}`);
 
             // ドアの開閉イベント購読開始
             this.roomManager.startListeningDoorEvents(({player, isCorrect}) => {
@@ -230,7 +232,6 @@ export class ExitGameManager extends GameManagerBase {
 
             // 1つ目のゲームルーム生成
             this.currentProgress = 1;
-            if(TEST_MODE.CONFIG) console.log(`current progress: ${this.currentProgress}`);
 
             // roomManagerをランダムにセット
             this.setRandomRoomType();
@@ -242,6 +243,9 @@ export class ExitGameManager extends GameManagerBase {
 
             // タイマースタート
             this._startTimer();
+
+            if(this.debug) console.log(`current room: ${this.currentProgress}`);
+            if(this.debug) console.log(`current roomType: ${this.currentRoomType}`);
 
             // ドアの開閉イベント購読開始
             this.roomManager.startListeningDoorEvents(({player, isCorrect}) => {
@@ -282,6 +286,19 @@ export class ExitGameManager extends GameManagerBase {
                     () => this.roomManager.generateRoom()
                 );
 
+                if(this.debug) console.log(`current room: ${this.currentProgress}`);
+                if(this.debug) console.log(`current roomType: ${this.currentRoomType}`);
+
+                // ドアの開閉イベント購読開始
+                this.roomManager.startListeningDoorEvents(({player, isCorrect}) => {
+                    if(isCorrect) {
+                        this.state = "RUNNING";
+                        this.onRoomCleared(player);
+                    } else {
+                        this.onRoomFailed(player);
+                    }
+                });
+
                 this.emit("roomCleared", {
                     gameKey: this.gameKey,
                     currentLevel: this.currentLevel
@@ -295,6 +312,9 @@ export class ExitGameManager extends GameManagerBase {
          */
         async onRoomFailed(player) {
             this.currentProgress = 0;
+
+            // ドアの開閉イベント購読停止
+            this.roomManager.stopListeningDoorEvents();
 
             // roomManagerのセット 初めの部屋は全て通常部屋
             this.currentRoomType = "normal";
@@ -312,6 +332,19 @@ export class ExitGameManager extends GameManagerBase {
                 gameSpawnLocation,
                 () => this.roomManager.generateRoom()
             );
+
+            if(this.debug) console.log(`current room: ${this.currentProgress}`);
+            if(this.debug) console.log(`current roomType: ${this.currentRoomType}`);
+
+            // ドアの開閉イベント購読開始
+            this.roomManager.startListeningDoorEvents(({player, isCorrect}) => {
+                if(isCorrect) {
+                    this.state = "RUNNING";
+                    this.onRoomCleared(player);
+                } else {
+                    this.quitGame();
+                }
+            });
 
             this.emit("gameReady", {
                 gameKey: this.gameKey,
@@ -334,19 +367,21 @@ export class ExitGameManager extends GameManagerBase {
                 elapsedMs: this.elapsedMs
             });
 
+            if(this.debug) console.log(`game cleared`);
+
             // ロビーへ戻る処理
             await this.quitGame();
         }
+
 
         /** ロビーへ戻る処理 */
         async quitGame() {
 
             // タイマーが起動していた場合はストップ
-            _stopTimer();
+            this._stopTimer();
 
             // spawnLocationをリセット
-            const lobbyLoc = PlayerStorage.makeDimensionLocation(lobbySpawnLocation);
-            PlayerManager.setSpawnPointForAll(lobbyLoc);
+            PlayerManager.setSpawnPointForAll(lobbySpawnLocation);
 
             // PlayerDataのSpawnLocationを更新
             PlayerStorage.setDirtyPlayers();
