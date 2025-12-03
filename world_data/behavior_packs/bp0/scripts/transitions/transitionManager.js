@@ -30,7 +30,7 @@ export class TransitionManager {
         // SE再生
         PlayerManager.playSoundForAll(seList[seId]);
 
-        // 部屋生成
+        // 部屋生成などの関数実行
         await generateRoomCallback();
 
         // テレポート

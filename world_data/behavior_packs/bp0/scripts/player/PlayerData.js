@@ -21,7 +21,7 @@ export class PlayerData {
 
         // シナリオ進行
         this.scenario = {
-        currentScenarioId: "opening",   // opening ⇒ game1 ⇒ game2 ⇒ game3 ⇒ ending
+        currentScenarioId: "opening",   // opening ⇒ game1 ⇒ game2 ⇒ game3 => ending
         flags: {}  // 各シナリオ中のフラグ格納
         };
 

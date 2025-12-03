@@ -3,7 +3,7 @@ import { PlayerManager } from "./player/playerManager";
 import { GameEntranceManager } from "./games/gameEntranceManager";
 
 PlayerManager.initialize();
-GameEntranceManager.init();
+GameEntranceManager.enterPicture();
 
 // ロード時の初期処理
 world.afterEvents.worldLoad.subscribe(() => {

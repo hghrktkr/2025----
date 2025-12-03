@@ -14,6 +14,7 @@ import { PlayerStorage } from "../player/playerStorage";
 import { ScenarioManager } from "../scenario/scenarioManager";
 import { RoomManager } from "../rooms/roomManager";
 import { TEST_MODE } from "../configs/testModeFlag";
+import { GameEntranceManager } from "./gameEntranceManager";
 
 // 脱出型ゲーム管理クラス
 
@@ -375,12 +376,12 @@ export class ExitGameManager extends GameManagerBase {
             if(this.debug) console.log(`game cleared`);
 
             // ロビーへ戻る処理
-            await this.quitGame();
+            await this.quitGame({isClear: true});
         }
 
 
         /** ロビーへ戻る処理 */
-        async quitGame() {
+        async quitGame({isClear = false} = {}) {
 
             // タイマーが起動していた場合はストップ
             this._stopTimer();
@@ -391,15 +392,24 @@ export class ExitGameManager extends GameManagerBase {
             // PlayerDataのSpawnLocationを更新
             PlayerStorage.setDirtyPlayers();
 
-
             // 現在のGameManagerインスタンスをクリア
             ScenarioManager.currentGameManager = null;
+
+            // クリアの場合はコールバック関数を渡す
+            let callback = () => {};
+            if(isClear) {
+
+            }
+            callback = () => {
+                GameEntranceManager.spawnEntrance(this.gameKey);
+                GameEntranceManager.isStarting = false;
+            }
 
             // ロビーへ移動シーケンス
             await TransitionManager.openDoorSequence(
                 lobbySpawnLocation,
                 "tp",
-                () => {}
+                callback
             );
 
         }

@@ -3,9 +3,8 @@
 import { world } from "@minecraft/server";
 import { PlayerStorage } from "../player/playerStorage";
 import { PlayerManager } from "../player/playerManager";
-import { TransitionManager } from "../transitions/transitionManager";
-import { roomSizeInfo } from "../configs/rooms/roomSizeInfo";
 import { GameEntranceManager } from "../games/gameEntranceManager";
+import { TEST_MODE } from "../configs/testModeFlag";
 export class ScenarioManager {
     // GameEntranceManagerから注入
     static currentGameManager = null;
@@ -50,7 +49,7 @@ export class ScenarioManager {
                 break;
 
             case "game1":
-                GameEntranceManager.startGame(player, scenarioId);
+                GameEntranceManager.spawnEntrance(scenarioId);
                 
                 break;
 
@@ -70,9 +69,11 @@ export class ScenarioManager {
     /** 棒を使うとシナリオを次へ進める */
     static manualScenarioControl() {
         world.beforeEvents.itemUse.subscribe((ev) => {
+            if(!TEST_MODE.CONFIG) return;
+
             if(ev.itemStack.typeId !== "minecraft:stick" && ev.itemStack.typeId !== "minecraft:blaze_rod") return;
             const player = ev.source;
-            ev.cancel;
+            ev.cancel = true;
             
             if(ev.itemStack.typeId === "minecraft:stick") {
                 let currentScenarioId = this.getCurrentScenarioId(player);
@@ -90,6 +91,7 @@ export class ScenarioManager {
             }
             else if(ev.itemStack.typeId === "minecraft:blaze_rod") {
                 PlayerStorage.resetPlayerData(player);
+                GameEntranceManager.isStarting = false;
             }
         });
     }
