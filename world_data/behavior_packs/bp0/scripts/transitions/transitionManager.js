@@ -6,16 +6,23 @@ export class TransitionManager {
     /**
      * 次の部屋を生成して移動させる
      * @param {object} nextLocationData 次に進む部屋のデータ dimension, x, y, z, yaw, pitch
+     * @param {string} doorType door | tp
      * @param {CallableFunction} generateRoomCallback コールバック関数
      */
-    static async openDoorSequence(nextLocationData, generateRoomCallback) {
+    static async openDoorSequence(nextLocationData, doorType, generateRoomCallback) {
 
         // フェードアウト
         PlayerManager.setPermissionForAll(false);
         PlayerManager.setCameraForAll("fade");
 
         // 扉のSE選択
-        const seList = ["edu.door_open1", "edu.door_open2", "edu.door_open3"];
+        let seList = [];
+        if(doorType === "door") {
+            seList = ["edu.door_open1", "edu.door_open2", "edu.door_open3"];
+        }
+        else if(doorType === "tp") {
+            seList = ["edu.tp1", "edu.tp2", "edu.tp3"];
+        }
         const seId = Math.floor(Math.random() * seList.length);
 
         if(TEST_MODE.CONFIG) console.log(`se id: ${seId}`);

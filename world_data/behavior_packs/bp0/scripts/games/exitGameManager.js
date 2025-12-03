@@ -186,10 +186,12 @@ export class ExitGameManager extends GameManagerBase {
             // 部屋生成、移動シーケンス
             await TransitionManager.openDoorSequence( 
                 gameSpawnLocation,
+                "tp",
                 () => this.roomManager.generateRoom()
             );
 
             if(this.debug) console.log(`current room: ${this.currentProgress}`);
+            if(this.debug) console.log(`current room: ${this.currentLevel}`);
             if(this.debug) console.log(`current roomType: ${this.currentRoomType}`);
 
             // ドアの開閉イベント購読開始
@@ -238,6 +240,7 @@ export class ExitGameManager extends GameManagerBase {
             
             await TransitionManager.openDoorSequence(
                 gameSpawnLocation,
+                "door",
                 () => this.roomManager.generateRoom()
             );
 
@@ -283,6 +286,7 @@ export class ExitGameManager extends GameManagerBase {
 
                 await TransitionManager.openDoorSequence(
                     gameSpawnLocation,
+                    "door",
                     () => this.roomManager.generateRoom()
                 );
 
@@ -330,6 +334,7 @@ export class ExitGameManager extends GameManagerBase {
 
             await TransitionManager.openDoorSequence(
                 gameSpawnLocation,
+                "door",
                 () => this.roomManager.generateRoom()
             );
 
@@ -393,6 +398,7 @@ export class ExitGameManager extends GameManagerBase {
             // ロビーへ移動シーケンス
             await TransitionManager.openDoorSequence(
                 lobbySpawnLocation,
+                "tp",
                 () => {}
             );
 
