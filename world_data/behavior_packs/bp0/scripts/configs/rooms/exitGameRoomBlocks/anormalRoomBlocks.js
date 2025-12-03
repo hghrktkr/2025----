@@ -1,5 +1,5 @@
 const anormalRoomBlocks = {
-    bed: ["minecraft:white_bed", "minecraft:blue_bed", "minecraft:green_bed"],
+    portrait: ["edu:portrait_santa_claus_black"],
     presentBox: ["edu:present_box_blue"],
     cake: ["minecraft:candle_cake", "minecraft:white_candle_cake", "minecraft:orange_candle_cake"],
     lantern: ["minecraft:soul_lantern"],
@@ -9,9 +9,9 @@ const anormalRoomBlocks = {
 };
 
 const unlockableBlocks = {
-    1: ["bed", "cake", "teddyBear"],
-    2: ["bed", "cake", "teddyBear", "presentBox", "lantern", "tree"],
-    3: ["bed", "cake", "teddyBear", "presentBox", "lantern", "tree", "snowman"]
+    1: ["portrait", "cake", "teddyBear"],
+    2: ["portrait", "cake", "teddyBear", "presentBox", "lantern", "tree"],
+    3: ["portrait", "cake", "teddyBear", "presentBox", "lantern", "tree", "snowman"]
 }
 
 export { anormalRoomBlocks, unlockableBlocks };

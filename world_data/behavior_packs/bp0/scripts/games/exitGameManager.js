@@ -75,7 +75,7 @@ export class ExitGameManager extends GameManagerBase {
             return gens;
         }
 
-        /** normalRoomGeneratorsとanormalRoomGeneratorsからランダムに1つだけanormalRoomGeneratorsのものに差し替え */
+        /** normalRoomGeneratorsの家具について、ランダムに1つだけanormalRoomGeneratorsのものに差し替え */
         setRandomAnormal() {
             const gens = [...this.normalRoomGenerators];
 
@@ -109,7 +109,7 @@ export class ExitGameManager extends GameManagerBase {
             return gens;
         }
 
-        /** 50%の確率で通常部屋を返す */
+        /** 設定した確率で通常部屋を返す */
         isNormalRoom() {
             return Math.random() < this.normalRate;
         }

@@ -38,11 +38,45 @@ export class RoomManager {
 
     /** generatorsに入れられた部屋の各部パーツを生成 */
     generateRoom() {
+        // 生成前にエンティティを消去
+        this.despawnEntitiesInRoom();
+        
         for (const generator of this.generators) {
             try {
                 generator.generate({startPos: this.startPos});
             } catch (error) {
                 console.warn(`Failed to generate furniture: ${generator.key}`, error);
+            }
+        }
+    }
+
+    /** 部屋内の指定されたエンティティをデスポーン */
+    despawnEntitiesInRoom() {
+        const dim = world.getDimension("overworld");
+        const center = {
+            x: this.startPos.x + this.size.width / 2,
+            y: this.startPos.y + this.size.height / 2,
+            z: this.startPos.z + this.size.depth / 2
+        }
+
+        const targetTypes = [
+            "edu:santa_claus_black",
+            "edu:stuffed_bear",
+            "edu:snowman",
+            "edu:chair"
+        ];
+
+        for(const targetType of targetTypes) {
+            const entities = dim.getEntities({
+                type: targetType,
+                location: center,
+                maxDistance: Math.max(this.size.width, this.size.height)
+            });
+    
+            for(const entity of entities) {
+                system.run(() => {
+                    entity.triggerEvent("despawn");
+                });
             }
         }
     }
