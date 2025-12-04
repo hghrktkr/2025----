@@ -5,6 +5,7 @@ import { PlayerStorage } from "../player/playerStorage";
 import { PlayerManager } from "../player/playerManager";
 import { GameEntranceManager } from "../games/gameEntranceManager";
 import { TEST_MODE } from "../configs/testModeFlag";
+import { ScenarioEventHandler } from "./scenarioEventHandler";
 export class ScenarioManager {
     // GameEntranceManagerから注入
     static currentGameManager = null;
@@ -38,10 +39,13 @@ export class ScenarioManager {
     }
 
     /** scenarioIdに応じて演出イベントをトリガー */
-    static triggerScenarioEvent(scenarioId, player) {
+    static async triggerScenarioEvent(scenarioId, player) {
         switch (scenarioId) {
             case "opening":
-                
+                await ScenarioEventHandler.openingSequence();
+                this.goToNextScenario(player);
+                let newScenario = this.getCurrentScenarioId(player);
+                this.triggerScenarioEvent(newScenario, player);
                 break;
 
             case "ending":
@@ -91,6 +95,8 @@ export class ScenarioManager {
             }
             else if(ev.itemStack.typeId === "minecraft:blaze_rod") {
                 PlayerStorage.resetPlayerData(player);
+                let currentScenarioId = this.getCurrentScenarioId(player);
+                this.triggerScenarioEvent(currentScenarioId, player);
                 GameEntranceManager.isStarting = false;
             }
         });
