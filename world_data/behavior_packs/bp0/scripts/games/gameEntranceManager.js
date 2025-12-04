@@ -5,6 +5,9 @@ import { ExitGameManager } from "../games/exitGameManager";
 import { MissionGameManager } from "../games/missionGameManager";
 import LOCATION_UTILS from "../utils/locationUtils";
 import { EntranceSpawner } from "../spawners/entranceSpawner";
+import { PlayerProgressManager } from "../player/playerProgressManager";
+import { gameLevel } from "../configs/gameLevel";
+import { TEST_MODE } from "../configs/testModeFlag";
 
 export class GameEntranceManager {
 
@@ -30,7 +33,7 @@ export class GameEntranceManager {
                     if(dist < 1) {
                         this.isStarting = true;
                         let gameKey = entrance.getTags().find(t => t === "game1" || t === "game2");
-                        entrance.remove();
+                        entrance.remove();  // 多重実行防止
                         this.startGame(player, gameKey);
                     }
                 }
@@ -42,8 +45,20 @@ export class GameEntranceManager {
     static async startGame(player, gameKey) {
         switch (gameKey) {
             case "game1":
+
+                // 現在のレベルと、それに伴うクリア部屋数を取得
+                const lv = PlayerProgressManager.getGameLevel(player, gameKey);
+                const roomCount = gameLevel[gameKey][lv];
+
+                if(TEST_MODE.CONFIG) console.log(`set Level: ${lv}`);
+                if(TEST_MODE.CONFIG) console.log(`required room: ${roomCount}`);
+                
                 ScenarioManager.currentGameManager = new ExitGameManager({
-                    gameKey: gameKey
+                    gameKey: gameKey,
+                    config: {
+                        currentLevel: lv,
+                        requiredRoomCount: roomCount
+                    }
                 });
                 break;
             case "game2":
@@ -58,7 +73,7 @@ export class GameEntranceManager {
     }
 
     /**
-     * シナリオに応じて扉を出現させる
+     * シナリオに応じて扉を出現させる(ロビー移動時)
      * @param {string} currentScenarioId opening | game1 | game2 | ending
      */
     static spawnEntrance(currentScenarioId) {

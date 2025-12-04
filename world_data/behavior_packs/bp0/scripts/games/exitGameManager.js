@@ -21,7 +21,7 @@ import { GameEntranceManager } from "./gameEntranceManager";
 export class ExitGameManager extends GameManagerBase {
     constructor(options) {
         super(options);
-        this.currentLevel = 1;
+        this.currentLevel = options.config?.currentLevel || 1;
         this.currentProgress = 0;
         this.requiredRoomCount = options.config?.requiredRoomCount || 3;
         this.roomSizeInfo = roomSizeInfo.exitGameRoom;
@@ -161,10 +161,11 @@ export class ExitGameManager extends GameManagerBase {
             
             this.state = "LOADING";
             if(this.debug) console.log(`game state: ${this.state} for ${this.gameKey}`);
+            if(this.debug) console.log(`game level: ${this.currentLevel}`);
+            if(this.debug) console.log(`rooms to clear: ${this.requiredRoomCount}`);
 
             // レベルの取得・スポーン位置設定
             this.currentProgress = 0;
-            this.currentLevel = PlayerProgressManager.getGameLevel(player, this.gameKey);
             PlayerManager.setSpawnPointForAll(gameSpawnLocation);
 
             // レベルに応じたgeneratorsのセット
@@ -194,6 +195,9 @@ export class ExitGameManager extends GameManagerBase {
             if(this.debug) console.log(`current room: ${this.currentProgress}`);
             if(this.debug) console.log(`current room: ${this.currentLevel}`);
             if(this.debug) console.log(`current roomType: ${this.currentRoomType}`);
+
+            // ロビー扉を再度有効に
+            GameEntranceManager.isStarting = false;
 
             // ドアの開閉イベント購読開始
             this.roomManager.startListeningDoorEvents(({player, isCorrect}) => {
@@ -363,7 +367,7 @@ export class ExitGameManager extends GameManagerBase {
          */
         async _onGoalReached() {
             this.elapsedMs = this._stopTimer();
-            PlayerProgressManager.setClearResultForAll(this.gameKey, this.currentLevel);
+            PlayerProgressManager.setClearResultForAll(this.gameKey, this.currentLevel, this.elapsedMs);
 
             // シナリオ進行などはここで発火
             this.state = "ENDED";
@@ -402,7 +406,6 @@ export class ExitGameManager extends GameManagerBase {
             }
             callback = () => {
                 GameEntranceManager.spawnEntrance(this.gameKey);
-                GameEntranceManager.isStarting = false;
             }
 
             // ロビーへ移動シーケンス

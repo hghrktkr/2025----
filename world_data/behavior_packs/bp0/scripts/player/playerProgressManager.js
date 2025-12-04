@@ -1,4 +1,6 @@
 // ゲーム中の進行管理クラス
+import { TEST_MODE } from "../configs/testModeFlag";
+import { ScenarioManager } from "../scenario/scenarioManager";
 import { PlayerStorage } from "./playerStorage";
 
 export class PlayerProgressManager {
@@ -106,8 +108,9 @@ export class PlayerProgressManager {
      * clearedをtrueに、ベストタイムの場合は更新、progressを0にリセット
      * @param {string} gameKey "game1", "game2", "game3"
      * @param {number} currentLevel レベル番号(1,2,3)
+     * @param {number} elapsedMs 今回のクリアタイム
      */
-    static setClearResultForAll(gameKey, currentLevel) {
+    static setClearResultForAll(gameKey, currentLevel, elapsedMs) {
         for(const entry of PlayerStorage.players.values()) {
             const { player, data: playerData } = entry;
             const lvKey = this.convertLvKey(currentLevel);
@@ -116,13 +119,21 @@ export class PlayerProgressManager {
             gameProgress.cleared = true;
             const currentTime = gameProgress.clearTime; // 現在のベストタイムを取得
 
-            if(currentTime !== 0 && this.elapsedMs < currentTime) {
-                gameProgress.clearTime = this.elapsedMs;
+            if(currentTime === 0 || elapsedMs < currentTime) {
+                gameProgress.clearTime = elapsedMs;
                 this.addFlags(player, "bestTime", true);
-                if(TEST_MODE.CONFIG) console.log(`player ${player.name} time updated`);
+                if(TEST_MODE.CONFIG) console.log(`player ${player.name} time updated to ${elapsedMs}`);
             }
             else {
                 this.addFlags(player, "bestTime", false);
+            }
+
+            // プレイヤーのシナリオ進行度が現在のゲームの場合、そのプレイヤーのシナリオを進める
+            const currentScenarioId = playerData.scenario.currentScenarioId;
+            if(currentScenarioId === gameKey) {
+                ScenarioManager.goToNextScenario(player);
+                const nextScenarioId = ScenarioManager.getCurrentScenarioId(player);
+                if(TEST_MODE.CONFIG) console.log(`scenario progressed from ${currentScenarioId} to ${nextScenarioId}`);
             }
             PlayerStorage.setDirtyPlayers();
         }

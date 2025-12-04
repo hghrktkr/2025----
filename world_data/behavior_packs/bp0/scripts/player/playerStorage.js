@@ -5,6 +5,7 @@ import { world } from "@minecraft/server";
 import { PlayerData } from "./PlayerData";
 import { TEST_MODE } from "../configs/testModeFlag";
 import { system } from "@minecraft/server";
+import { GameEntranceManager } from "../games/gameEntranceManager";
 
 export class PlayerStorage {
     static players = new Map(); // key: playerId, value: { Player, data: PlayerData } ゲーム中の参照用
@@ -32,6 +33,9 @@ export class PlayerStorage {
             console.log('プレイヤーデータ新規作成中...');
             playerData = new PlayerData(player);
         }
+
+        // シナリオに合わせて扉を出す
+        GameEntranceManager.spawnEntrance(playerData.scenario.currentScenarioId);
 
         playerData.save.needsSave = true;   // セーブして更新
 

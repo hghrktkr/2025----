@@ -9,7 +9,7 @@ export class ScenarioManager {
     // GameEntranceManagerから注入
     static currentGameManager = null;
 
-    static SCENARIOS = [ 'opening', 'game1', 'ending' ];    // 一旦ゲーム1つに
+    static SCENARIOS = [ 'opening', 'game1', 'game2', 'game3', 'ending' ];    // 一旦ゲーム1つに
 
     /** PlayerDataの現在のシナリオを取得 */
     static getCurrentScenarioId(player) {

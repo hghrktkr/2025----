@@ -1,7 +1,9 @@
 // 演出に関する関数群⇒TransitionManagerで使用
 
-import { InputPermissionCategory } from "@minecraft/server";
+import { EasingType, Entity, InputPermissionCategory } from "@minecraft/server";
 import { TEST_MODE } from "../configs/testModeFlag";
+import { system } from "@minecraft/server";
+import LOCATION_UTILS from "./locationUtils";
 
 /**
  * プレイヤーの操作許可/禁止
@@ -36,4 +38,80 @@ function setCamera(player, cameraOption) {
     }
 };
 
-export { setPermission, setCamera };
+/**
+ * プレイヤーのカメラを動かす
+ * @param {player} プレイヤー
+ * @param {{x: number, y: number, z: number}} startPos 始点
+ * @param {{x: number, y: number}} startRot 始点時のカメラの角度
+ * @param {{x: number, y: number, z: number}} endPos 終点
+ * @param {{x: number, y: number}} endRot 終点でのカメラの角度
+ * @param {number} totalSec カメラを動かすトータルの時間
+ */
+async function setCameraPan(player, startPos, startRot, endPos, endRot, totalSec) {
+    // カメラを始点にセット 権限回避のためsystem.run
+    system.run(() => {
+        player.camera.setCamera("minecraft:free", {
+            location: startPos,
+            rotation: startRot
+        });
+    });
+
+    // カメラをトータル秒かけて動かす
+    system.runTimeout(() => {
+        player.camera.setCamera("minecraft:free", {
+            location: endPos,
+            rotation: endRot,
+            easeOptions: {
+                easeTime: totalSec,
+                easeType: EasingType.InOutSine
+            }
+        });
+    }, 5);  // 同時にならないよう少しだけ遅延
+}
+
+/**
+ * エンティティを動かす
+ * @param {Entity} entity 動かすエンティティ
+ * @param {{x: number, y: number, z: number}} startPos スタート地点
+ * @param {{x: number, y: number, z: number}} endPos ゴール地点
+ * @param {number} totalSec 移動時間
+ */
+async function moveEntity(entity, startPos, endPos, totalSec) {
+    // 移動距離
+    const distance = LOCATION_UTILS.distance(startPos, endPos);
+
+    // 単位ベクトル
+    const direction = {
+        x: (endPos.x - startPos.x) / distance,
+        y: (endPos.y - startPos.y) / distance,
+        z: (endPos.z - startPos.z) / distance
+    }
+
+    // トータルの移動回数
+    const totalSteps = totalSec / 0.5;
+
+    // 0.5秒あたりの移動成分
+    const dx = direction.x * (distance / totalSteps);
+    const dy = direction.y * (distance / totalSteps);
+    const dz = direction.z * (distance / totalSteps);
+
+    let tpPos = {...startPos};
+    let currentStep = 0;
+
+    // 0.5秒ごとにテレポート
+    const interval = system.runInterval(() => {
+        if(currentStep >= totalSteps) system.clearRun(interval);
+
+        entity.teleport(tpPos);
+        let nextPos = {
+            x: tpPos.x + dx,
+            y: tpPos.y + dy,
+            z: tpPos.z + dz
+        };
+        tpPos = nextPos;
+        currentStep += 1;
+    }, 20 * 0.5);
+
+}
+
+export { setPermission, setCamera, setCameraPan, moveEntity };
