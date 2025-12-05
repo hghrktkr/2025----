@@ -1,4 +1,4 @@
-import { BlockType, system, world } from "@minecraft/server";
+import { system, world } from "@minecraft/server";
 import { moveEntity, setCamera, setCameraPan, setPermission } from "../utils/transitionEffect";
 import { broadcastTitle } from "../utils/helpers";
 import { PlayerManager } from "../player/playerManager";
@@ -18,39 +18,43 @@ export class ScenarioEventHandler {
                 setPermission(player, false);
                 setCamera(player, "fade");
             });
+        }
 
-            const startPos = {x: 846, y: 124, z: -41};
-            const startRot = {x: -10, y: 90};
-            const endPos = {x: 840, y: 126, z: -41};
-            const endRot = {x: -25, y: 160};
-            const totalSec = 4;
+        const startPos = {x: 846, y: 124, z: -41};
+        const startRot = {x: -10, y: 90};
+        const endPos = {x: 840, y: 126, z: -41};
+        const endRot = {x: -25, y: 160};
+        const totalSec = 4;
 
-            const tpStartPos = {x: 837, y: 122, z: -44};
-            const tpEndPos = {x: 835, y: 127, z: -54.5};
+        const tpStartPos = {x: 837, y: 122, z: -44};
+        const tpEndPos = {x: 835, y: 127, z: -54.5};
 
-            let santa;
+        let santa;
 
-            // カメラをパンと同時にサンタを動かす
-            system.runTimeout(() => {
+        // カメラをパンと同時にサンタを動かす
+        system.runTimeout(() => {
+            santa = dim.spawnEntity("edu:santa_claus_red", {x: 837, y: 122, z: -44}, {
+                initialRotation: 180
+            });
 
-                santa = dim.spawnEntity("edu:santa_claus_red", {x: 837, y: 122, z: -44}, {
-                    initialRotation: 180
-                });
+            moveEntity(santa, tpStartPos, tpEndPos, totalSec - 0.5);
 
-                system.waitTicks(5);    // スポーンし終わってから実行するため遅延
-
-                moveEntity(santa, tpStartPos, tpEndPos, totalSec - 0.5);
+            for(const player of dim.getPlayers()) {
                 setCameraPan(player, startPos, startRot, endPos, endRot, totalSec);
-            }, 20 * 0.5);
+            }
+        }, 20 * 0.5);
 
-            // サンタを消す、設定のクリア
-            system.runTimeout(() => {
-                PlayerManager.playSoundForAll("edu.tp1");
-                santa.remove();
+        // サンタを消す、設定のクリア
+        system.runTimeout(() => {
+            PlayerManager.playSoundForAll("edu.tp1");
+            santa.remove();
+
+            for(const player of dim.getPlayers()) {
                 setPermission(player, true);
                 setCamera(player, "clear");
-            }, 20 * 6);
-        }
+            }
+        }, 20 * 6);
+        
 
         system.runTimeout(() => {
             broadcastTitle("サンタをおいかけよう！", "絵のなかにとびこもう");
@@ -69,39 +73,42 @@ export class ScenarioEventHandler {
                 setPermission(player, false);
                 setCamera(player, "fade");
             });
+        }
 
-            const startPos = {x: 844, y: 124, z: -41};
-            const startRot = {x: -10, y: 270};
-            const endPos = {x: 855, y: 126, z: -41};
-            const endRot = {x: -25, y: 180};
-            const totalSec = 4;
+        const startPos = {x: 844, y: 124, z: -41};
+        const startRot = {x: -10, y: 270};
+        const endPos = {x: 855, y: 126, z: -41};
+        const endRot = {x: -25, y: 180};
+        const totalSec = 4;
 
-            const tpStartPos = {x: 855, y: 122, z: -44};
-            const tpEndPos = {x: 857, y: 127, z: -54.5};
+        const tpStartPos = {x: 855, y: 122, z: -44};
+        const tpEndPos = {x: 857, y: 127, z: -54.5};
 
-            let santa;
+        let santa;
 
-            // カメラをパンと同時にサンタを動かす
-            system.runTimeout(() => {
+        // カメラをパンと同時にサンタを動かす
+        system.runTimeout(() => {
 
-                santa = dim.spawnEntity("edu:santa_claus_red", {x: 855, y: 122, z: -44}, {
-                    initialRotation: 180
-                });
+            santa = dim.spawnEntity("edu:santa_claus_red", {x: 855, y: 122, z: -44}, {
+                initialRotation: 180
+            });
+            moveEntity(santa, tpStartPos, tpEndPos, totalSec - 0.5);
 
-                system.waitTicks(5);    // スポーンし終わってから実行するため遅延
-
-                moveEntity(santa, tpStartPos, tpEndPos, totalSec - 0.5);
+            for(const player of dim.getPlayers()) {
                 setCameraPan(player, startPos, startRot, endPos, endRot, totalSec);
-            }, 20 * 0.5);
+            }
+        }, 20 * 0.5);
 
-            // サンタを消す、設定のクリア
-            system.runTimeout(() => {
-                PlayerManager.playSoundForAll("edu.tp2");
-                santa.remove();
+        // サンタを消す、設定のクリア
+        system.runTimeout(() => {
+            PlayerManager.playSoundForAll("edu.tp2");
+            santa.remove();
+
+            for(const player of dim.getPlayers()) {
                 setPermission(player, true);
                 setCamera(player, "clear");
-            }, 20 * 6);
-        }
+            }
+        }, 20 * 6);
 
         system.runTimeout(() => {
             broadcastTitle("サンタをおいかけよう！", "絵のなかにとびこもう");
@@ -111,65 +118,67 @@ export class ScenarioEventHandler {
     /** ゲーム2クリア後 */
     static async afterClearGame2Sequence() {
         const dim = world.getDimension("overworld");
-        const startTime = Date.now();
 
         for(const player of dim.getPlayers()) {
 
             // パーミッション変更、フェードアウト
             system.run(() => {
-                if(TEST_MODE.CONFIG) console.log(`1. ${startTime}`);
                 setPermission(player, false);
                 setCamera(player, "fade");
             });
+        }
 
-            const startPos = {x: 846, y: 127, z: -41};
-            const startRot = {x: 20, y: 180};
-            const endPos = {x: 846, y: 127, z: -44};
-            const endRot = {x: 20, y: 180};
-            const totalSec = 4;
+        const startPos = {x: 846, y: 127, z: -41};
+        const startRot = {x: 20, y: 180};
+        const endPos = {x: 846, y: 127, z: -44};
+        const endRot = {x: 20, y: 180};
+        const totalSec = 4;
 
-            const tpStartPos = {x: 846, y: 120, z: -47};
-            const tpEndPos = {x: 846, y: 120, z: -50};
+        const tpStartPos = {x: 846, y: 120, z: -47};
+        const tpEndPos = {x: 846, y: 120, z: -50};
 
-            let santa;
-            
+        let santa;
+        
 
-            // カメラをパンと同時にサンタを動かす
-            system.runTimeout(() => {
-                santa = dim.spawnEntity("edu:santa_claus_red", {x: 846, y: 121, z: -47}, {
-                    initialRotation: 180
-                });
+        // カメラをパンと同時にサンタを動かす
+        system.runTimeout(() => {
+            santa = dim.spawnEntity("edu:santa_claus_red", {x: 846, y: 121, z: -47}, {
+                initialRotation: 180
+            });
+            moveEntity(santa, tpStartPos, tpEndPos, totalSec - 0.5);
 
-                system.waitTicks(5);    // スポーンし終わってから実行するため遅延
-
-                moveEntity(santa, tpStartPos, tpEndPos, totalSec - 0.5);
+            for(const player of dim.getPlayers()) {
                 setCameraPan(player, startPos, startRot, endPos, endRot, totalSec);
-            }, 20 * 1.5);
+            }
 
-            // 階段を上る
-            const tpStartPos2 = {x: 846, y: 121, z: -50};
-            const tpEndPos2 = {x: 846, y: 123, z: -52};
-            const totalSec2 = 2;
+        }, 20 * 1.5);
 
-            system.runTimeout(() => {
-                moveEntity(santa, tpStartPos2, tpEndPos2, totalSec2);
-            }, 20 * 5);
-            
-            // 火をつけるモーション
-            system.runTimeout(() => {
-                santa.playAnimation("attack");
-                dim.setBlockType({x: 846, y: 123, z: -54}, "minecraft:fire");
-                system.waitTicks(10);
-            }, 20 * 8);
+        // 階段を上る
+        const tpStartPos2 = {x: 846, y: 121, z: -50};
+        const tpEndPos2 = {x: 846, y: 123, z: -52};
+        const totalSec2 = 2;
 
-            // サンタを消す、設定のクリア
-            system.runTimeout(() => {
-                PlayerManager.playSoundForAll("edu.tp3");
-                santa.remove();
+        system.runTimeout(() => {
+            moveEntity(santa, tpStartPos2, tpEndPos2, totalSec2);
+        }, 20 * 5);
+        
+        // 火をつけるモーション
+        system.runTimeout(() => {
+            santa.playAnimation("attack");
+            dim.setBlockType({x: 846, y: 123, z: -54}, "minecraft:fire");
+            system.waitTicks(10);
+        }, 20 * 8);
+
+        // サンタを消す、設定のクリア
+        system.runTimeout(() => {
+            PlayerManager.playSoundForAll("edu.tp3");
+            santa.remove();
+
+            for(const player of dim.getPlayers()) {
                 setPermission(player, true);
                 setCamera(player, "clear");
-            }, 20 * 11);
-        }
+            }
+        }, 20 * 11);
 
         system.runTimeout(() => {
             broadcastTitle("サンタをおいかけよう！", "ワープしよう");
