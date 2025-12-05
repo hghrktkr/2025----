@@ -97,17 +97,21 @@ async function moveEntity(entity, startPos, endPos, totalSec) {
 
     let tpPos = {...startPos};
     let currentStep = 0;
+    let nextPos;
 
     // 0.5秒ごとにテレポート
     const interval = system.runInterval(() => {
         if(currentStep >= totalSteps) system.clearRun(interval);
-
-        entity.teleport(tpPos);
-        let nextPos = {
-            x: tpPos.x + dx,
-            y: tpPos.y + dy,
-            z: tpPos.z + dz
-        };
+        try {
+            entity.teleport(tpPos);
+            nextPos = {
+                x: tpPos.x + dx,
+                y: tpPos.y + dy,
+                z: tpPos.z + dz
+            };
+        } catch (error) {
+            console.warn(error);
+        }
         tpPos = nextPos;
         currentStep += 1;
     }, 20 * 0.5);

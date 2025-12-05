@@ -1,6 +1,6 @@
 // シナリオの遷移、各シナリオ毎のイベントのフック、現在のシナリオをゲーム中保存
 
-import { world } from "@minecraft/server";
+import { world, system } from "@minecraft/server";
 import { PlayerStorage } from "../player/playerStorage";
 import { PlayerManager } from "../player/playerManager";
 import { GameEntranceManager } from "../games/gameEntranceManager";
@@ -14,6 +14,7 @@ export class ScenarioManager {
 
     /** PlayerDataの現在のシナリオを取得 */
     static getCurrentScenarioId(player) {
+        if(TEST_MODE.console) console.log(`search ${player.name} / ${player.id} of scenario id`);
         const playerData = PlayerStorage.get(player).data;
         return playerData.scenario.currentScenarioId;
     }
@@ -42,10 +43,17 @@ export class ScenarioManager {
     static async triggerScenarioEvent(scenarioId, player) {
         switch (scenarioId) {
             case "opening":
+
+                // オープニングを流してgame1へ
                 await ScenarioEventHandler.openingSequence();
-                this.goToNextScenario(player);
-                let newScenario = this.getCurrentScenarioId(player);
-                this.triggerScenarioEvent(newScenario, player);
+
+                // シナリオを進行
+                // ロードを待つため遅延
+                system.runTimeout(() => {
+                    this.goToNextScenario(player);
+                    let newScenario = this.getCurrentScenarioId(player);
+                    this.triggerScenarioEvent(newScenario, player);
+                }, 40);
                 break;
 
             case "ending":
@@ -53,14 +61,22 @@ export class ScenarioManager {
                 break;
 
             case "game1":
+                // 扉を出現させる
                 GameEntranceManager.spawnEntrance(scenarioId);
                 
                 break;
 
             case "game2":
+                // 扉を出現させる
+                GameEntranceManager.spawnEntrance(scenarioId);
+                // ムービー
+                await ScenarioEventHandler.afterClearGame1Sequence();
                 
                 break;
             case "game3":
+
+                // ムービー
+                await ScenarioEventHandler.afterClearGame2Sequence();
                 
                 break;
         
@@ -75,7 +91,7 @@ export class ScenarioManager {
         world.beforeEvents.itemUse.subscribe((ev) => {
             if(!TEST_MODE.CONFIG) return;
 
-            if(ev.itemStack.typeId !== "minecraft:stick" && ev.itemStack.typeId !== "minecraft:blaze_rod") return;
+            if(ev.itemStack.typeId !== "minecraft:stick" && ev.itemStack.typeId !== "minecraft:blaze_rod" && ev.itemStack.typeId !== "minecraft:end_rod") return;
             const player = ev.source;
             ev.cancel = true;
             
@@ -95,8 +111,10 @@ export class ScenarioManager {
             }
             else if(ev.itemStack.typeId === "minecraft:blaze_rod") {
                 PlayerStorage.resetPlayerData(player);
-                let currentScenarioId = this.getCurrentScenarioId(player);
-                this.triggerScenarioEvent(currentScenarioId, player);
+                GameEntranceManager.isStarting = false;
+            }
+            else if(ev.itemStack.typeId === "minecraft:end_rod") {
+                this.triggerScenarioEvent("game3");
                 GameEntranceManager.isStarting = false;
             }
         });

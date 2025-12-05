@@ -109,6 +109,7 @@ export class PlayerProgressManager {
      * @param {string} gameKey "game1", "game2", "game3"
      * @param {number} currentLevel レベル番号(1,2,3)
      * @param {number} elapsedMs 今回のクリアタイム
+     * 
      */
     static setClearResultForAll(gameKey, currentLevel, elapsedMs) {
         for(const entry of PlayerStorage.players.values()) {
@@ -130,12 +131,15 @@ export class PlayerProgressManager {
 
             // プレイヤーのシナリオ進行度が現在のゲームの場合、そのプレイヤーのシナリオを進める
             const currentScenarioId = playerData.scenario.currentScenarioId;
+            let isFirstClear = false;
             if(currentScenarioId === gameKey) {
                 ScenarioManager.goToNextScenario(player);
                 const nextScenarioId = ScenarioManager.getCurrentScenarioId(player);
                 if(TEST_MODE.CONFIG) console.log(`scenario progressed from ${currentScenarioId} to ${nextScenarioId}`);
+                isFirstClear = true;
             }
             PlayerStorage.setDirtyPlayers();
+            return isFirstClear;
         }
     }
 }

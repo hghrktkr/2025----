@@ -207,7 +207,7 @@ export class ExitGameManager extends GameManagerBase {
                     this.state = "READY";
                     this.startGame(player);
                 } else {
-                    this.quitGame();
+                    this.quitGame(player);
                 }
             });
 
@@ -352,7 +352,7 @@ export class ExitGameManager extends GameManagerBase {
                     this.state = "RUNNING";
                     this.onRoomCleared(player);
                 } else {
-                    this.quitGame();
+                    this.quitGame(player);
                 }
             });
 
@@ -365,9 +365,8 @@ export class ExitGameManager extends GameManagerBase {
         /**
          * ゴール処理
          */
-        async _onGoalReached() {
+        async _onGoalReached(player) {
             this.elapsedMs = this._stopTimer();
-            PlayerProgressManager.setClearResultForAll(this.gameKey, this.currentLevel, this.elapsedMs);
 
             // シナリオ進行などはここで発火
             this.state = "ENDED";
@@ -380,12 +379,12 @@ export class ExitGameManager extends GameManagerBase {
             if(this.debug) console.log(`game cleared`);
 
             // ロビーへ戻る処理
-            await this.quitGame({isClear: true});
+            await this.quitGame(player, {isClear: true});
         }
 
 
         /** ロビーへ戻る処理 */
-        async quitGame({isClear = false} = {}) {
+        async quitGame(player, {isClear = false} = {}) {
 
             // タイマーが起動していた場合はストップ
             this._stopTimer();
@@ -401,11 +400,13 @@ export class ExitGameManager extends GameManagerBase {
 
             // クリアの場合はコールバック関数を渡す
             let callback = () => {};
+            let isFirstClear = false;
             if(isClear) {
 
-            }
-            callback = () => {
-                GameEntranceManager.spawnEntrance(this.gameKey);
+                // コールバックにクリア時ムービー追加
+                callback = () => {
+                    isFirstClear = PlayerProgressManager.setClearResultForAll(this.gameKey, this.currentLevel, this.elapsedMs);
+                }
             }
 
             // ロビーへ移動シーケンス
@@ -414,6 +415,8 @@ export class ExitGameManager extends GameManagerBase {
                 "tp",
                 callback
             );
+            if(this.debug) console.log(`is first clear: ${isFirstClear}`);
+            if(isFirstClear) ScenarioManager.triggerScenarioEvent();
 
         }
 

@@ -6,6 +6,7 @@ import { PlayerData } from "./PlayerData";
 import { TEST_MODE } from "../configs/testModeFlag";
 import { system } from "@minecraft/server";
 import { GameEntranceManager } from "../games/gameEntranceManager";
+import { ScenarioManager } from "../scenario/scenarioManager";
 
 export class PlayerStorage {
     static players = new Map(); // key: playerId, value: { Player, data: PlayerData } ゲーム中の参照用
@@ -34,9 +35,6 @@ export class PlayerStorage {
             playerData = new PlayerData(player);
         }
 
-        // シナリオに合わせて扉を出す
-        GameEntranceManager.spawnEntrance(playerData.scenario.currentScenarioId);
-
         playerData.save.needsSave = true;   // セーブして更新
 
         // dimensionLocation作成
@@ -49,13 +47,27 @@ export class PlayerStorage {
             z: spawnData.z
         };
 
-        console.log(`teleport to ( ${dLoc.x}, ${dLoc.y}, ${dLoc.z} )`);
+        // Mapに登録
+        if(TEST_MODE.CONFIG) console.log(`setting player id: ${player.id}`);
         this.players.set(player.id, { player, data: playerData });
-
+        
+        // ロビーへテレポート
         system.runTimeout(() => {
+            if(TEST_MODE.CONFIG) console.log(`teleport to ( ${dLoc.x}, ${dLoc.y}, ${dLoc.z} )`);
             player.teleport({x: dLoc.x, y: dLoc.y, z: dLoc.z});    // ロビーにテレポート
             player.setSpawnPoint(dLoc);   // スポーンポイントをロビーに
         }, 10); // 権限問題回避のため遅延
+
+        // シナリオに合わせて扉を出す
+        const resumeScenario = playerData.scenario.currentScenarioId;
+        GameEntranceManager.spawnEntrance(resumeScenario);
+
+        // 新規ログインの場合、オープニングを流す
+        if(resumeScenario === "opening") {
+            system.runTimeout(() => {
+                ScenarioManager.triggerScenarioEvent(resumeScenario, player);
+            }, 40);
+        }
     }
 
     /** プレイヤーデータをjson化してDynamic Propertyにセーブ */
@@ -101,11 +113,26 @@ export class PlayerStorage {
         console.warn(`プレイヤー ${player.name}のデータをリセットします...`);
 
         player.setDynamicProperty(this.DATA_KEY, undefined);
-        this.players.delete(player.id);
+
+        // テストモードでplayersのid一覧と削除プレイヤーのidをチェック
+        if(TEST_MODE.CONFIG) {
+            for(const entries of this.players) {
+                const { player: mapPlayer } = entries;
+                console.log(`map id: ${mapPlayer} / ${mapPlayer}`);
+            }
+        }
+
+        // 渡したプレイヤーのidがあれば削除
+        if(this.players.has(player.id)) {
+            this.players.delete(player.id);
+        }
+
+        // 再度ロード(データ新規作成)
         this.loadPlayerData(player);
     }
 
     static get(player) {
+        if(TEST_MODE.CONFIG) console.log(`search id: ${player.id}`);
         return this.players.get(player.id);
     }
 
