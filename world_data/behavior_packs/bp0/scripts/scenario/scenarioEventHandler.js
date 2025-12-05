@@ -3,6 +3,9 @@ import { moveEntity, setCamera, setCameraPan, setPermission } from "../utils/tra
 import { broadcastTitle } from "../utils/helpers";
 import { PlayerManager } from "../player/playerManager";
 import { TEST_MODE } from "../configs/testModeFlag";
+import { GameEntranceManager } from "../games/gameEntranceManager";
+import { gateConfig } from "../configs/entrancePictureConfig";
+import { EntranceSpawner } from "../spawners/entranceSpawner";
 
 // シナリオ毎の演出シーケンス
 export class ScenarioEventHandler {
@@ -158,6 +161,9 @@ export class ScenarioEventHandler {
         const tpEndPos2 = {x: 846, y: 123, z: -52};
         const totalSec2 = 2;
 
+        // ゲートの情報を取得
+        const {startPos: gateStartPos, endPos: gateEndPos, dimension, blockType} = gateConfig;
+
         system.runTimeout(() => {
             moveEntity(santa, tpStartPos2, tpEndPos2, totalSec2);
         }, 20 * 5);
@@ -165,7 +171,9 @@ export class ScenarioEventHandler {
         // 火をつけるモーション
         system.runTimeout(() => {
             santa.playAnimation("attack");
-            dim.setBlockType({x: 846, y: 123, z: -54}, "minecraft:fire");
+
+            // fake_portal設置
+            EntranceSpawner.spawnGate(gateStartPos, gateEndPos, dimension, blockType);
             system.waitTicks(10);
         }, 20 * 8);
 

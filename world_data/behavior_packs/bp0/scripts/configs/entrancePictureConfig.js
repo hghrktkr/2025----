@@ -12,3 +12,10 @@ export const entrancePictureConfig = {
         dimension: "overworld"
     }
 };
+
+export const gateConfig = {
+    startPos: {x: 844, y: 123, z: -54},
+    endPos: {x: 848, y: 127, z: -54},
+    dimension: "overworld",
+    blockType: "edu:fake_portal"
+};

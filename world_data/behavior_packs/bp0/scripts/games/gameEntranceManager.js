@@ -8,6 +8,7 @@ import { EntranceSpawner } from "../spawners/entranceSpawner";
 import { PlayerProgressManager } from "../player/playerProgressManager";
 import { gameLevel } from "../configs/gameLevel";
 import { TEST_MODE } from "../configs/testModeFlag";
+import { gateConfig } from "../configs/entrancePictureConfig";
 
 export class GameEntranceManager {
 
@@ -84,12 +85,21 @@ export class GameEntranceManager {
             
             case "game1":
                 EntranceSpawner.spawnEntrance("game1");
+                EntranceSpawner.spawnGate(gateConfig.startPos, gateConfig.endPos, gateConfig.dimension, "minecraft:air");
                 break;
             
             case "game2":
                 EntranceSpawner.spawnEntrance("game1");
                 EntranceSpawner.spawnEntrance("game2");
+                EntranceSpawner.spawnGate(gateConfig.startPos, gateConfig.endPos, gateConfig.dimension, "minecraft:air");
                 break;
+            
+            case "game3":
+                EntranceSpawner.spawnEntrance("game1");
+                EntranceSpawner.spawnEntrance("game2");
+                EntranceSpawner.spawnGate(gateConfig.startPos, gateConfig.endPos, gateConfig.dimension, gateConfig.blockType);
+                break;
+
             
             case "ending":
 

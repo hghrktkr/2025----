@@ -6,6 +6,9 @@ import { PlayerManager } from "../player/playerManager";
 import { GameEntranceManager } from "../games/gameEntranceManager";
 import { TEST_MODE } from "../configs/testModeFlag";
 import { ScenarioEventHandler } from "./scenarioEventHandler";
+import { EntranceSpawner } from "../spawners/entranceSpawner";
+import { gateConfig } from "../configs/entrancePictureConfig";
+
 export class ScenarioManager {
     // GameEntranceManagerから注入
     static currentGameManager = null;
@@ -110,6 +113,7 @@ export class ScenarioManager {
                 }
             }
             else if(ev.itemStack.typeId === "minecraft:blaze_rod") {
+                EntranceSpawner.spawnGate(gateConfig.startPos, gateConfig.endPos, gateConfig.dimension, "minecraft:air");
                 PlayerStorage.resetPlayerData(player);
                 GameEntranceManager.isStarting = false;
             }

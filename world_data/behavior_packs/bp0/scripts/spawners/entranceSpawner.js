@@ -1,4 +1,4 @@
-import { system, world } from "@minecraft/server";
+import { BlockVolume, system, world } from "@minecraft/server";
 import { entrancePictureConfig } from "../configs/entrancePictureConfig";
 
 // 扉エンティティをスポーンさせるクラス
@@ -19,10 +19,9 @@ export class EntranceSpawner {
         const { spawnPos, direction, type, dimension } = entrancePictureConfig[gameKey];
         const dim = world.getDimension(dimension);
         
-        // 既にスポーンしている場合は一度デスポーン
+        // 既にスポーンしている場合は全ての扉を一度デスポーン
         const spawnedEntrances = dim.getEntities({
-            type: type,
-            tags: [gameKey]
+            tags: ["entrance"]
         });
 
         if(spawnedEntrances.length > 0) {
@@ -66,5 +65,29 @@ export class EntranceSpawner {
         }
 
         return rotationYaw;
+    }
+
+    /**
+     * ゲートのポータル風ブロックを並べる
+     * @param {{x: number, y: number, z: number}} startPos 開始位置
+     * @param {{x: number, y: number, z: number}} endPos 終了位置
+     * @param {string} dimension
+     * @param {string} blockType
+     */
+    static spawnGate(startPos, endPos, dimension, blockType) {
+        const dim = world.getDimension(dimension);
+
+        const volume = new BlockVolume(
+            startPos,
+            endPos
+        );
+
+        try {
+            system.run(() => {
+                dim.fillBlocks(volume, blockType);
+            });
+        } catch (error) {
+            console.warn(`can't fill blocks;`, error);
+        }
     }
 }
