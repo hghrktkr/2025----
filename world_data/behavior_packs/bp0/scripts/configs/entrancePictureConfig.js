@@ -10,6 +10,12 @@ export const entrancePictureConfig = {
         direction: "south",
         type: "edu:picture_door_game2",
         dimension: "overworld"
+    },
+    game3: {
+        spawnPos: {x:846,  y:123,  z:-54.3 },
+        direction: "south",
+        type: "edu:marker",
+        dimension: "overworld"
     }
 };
 

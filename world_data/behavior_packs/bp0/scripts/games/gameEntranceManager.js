@@ -33,7 +33,7 @@ export class GameEntranceManager {
 
                     if(dist < 1) {
                         this.isStarting = true;
-                        let gameKey = entrance.getTags().find(t => t === "game1" || t === "game2");
+                        let gameKey = entrance.getTags().find(t => t === "game1" || t === "game2" || "game3");
                         entrance.remove();  // 多重実行防止
                         this.startGame(player, gameKey);
                     }
@@ -62,11 +62,17 @@ export class GameEntranceManager {
                     }
                 });
                 break;
+            
             case "game2":
                 ScenarioManager.currentGameManager = new MissionGameManager({
                     gameKey: gameKey
                 });
                 break;
+
+            case "game3":
+
+                break;
+            
         }
 
         // 初期化してテレポート

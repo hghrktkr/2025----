@@ -80,6 +80,8 @@ export class ScenarioManager {
 
                 // ムービー
                 await ScenarioEventHandler.afterClearGame2Sequence();
+                // 扉を出現させる（ムービー内で出しているがマーカーを出すため）
+                GameEntranceManager.spawnEntrance(scenarioId);
                 
                 break;
         
