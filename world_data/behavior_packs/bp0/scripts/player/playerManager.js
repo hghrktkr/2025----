@@ -157,6 +157,34 @@ class PlayerManager {
             });
         }
     }
+
+    /**
+     * すべてのプレイヤーへBGM再生
+     * @param {string} soundId 
+     */
+    static playMusicForAll(soundId) {
+        for(const entry of PlayerStorage.players.values()) {
+            const { player } = entry;
+            system.run(() => {
+                player.playMusic(soundId, {
+                    loop: true
+                })
+            });
+        }
+    }
+
+    /**
+     * すべてのプレイヤーへBGM停止
+     * @param {string} soundId 
+     */
+    static stopMusicForAll(soundId) {
+        for(const entry of PlayerStorage.players.values()) {
+            const { player } = entry;
+            system.run(() => {
+                player.stopMusic();
+            });
+        }
+    }
 }
 
 export { PlayerManager };

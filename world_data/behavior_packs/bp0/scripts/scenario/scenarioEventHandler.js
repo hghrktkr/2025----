@@ -172,8 +172,9 @@ export class ScenarioEventHandler {
         system.runTimeout(() => {
             santa.playAnimation("attack");
 
-            // fake_portal設置
+            // fake_portal設置+効果音
             EntranceSpawner.spawnGate(gateStartPos, gateEndPos, dimension, blockType);
+            PlayerManager.playSoundForAll("edu.barrier");
             system.waitTicks(10);
         }, 20 * 8);
 
@@ -190,6 +191,6 @@ export class ScenarioEventHandler {
 
         system.runTimeout(() => {
             broadcastTitle("サンタをおいかけよう！", "ワープしよう");
-        }, 20 * 12);
+        }, 20 * 12.5);
     }
 }
