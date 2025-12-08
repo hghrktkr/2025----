@@ -5,7 +5,7 @@
  * 注意：world.gameRules[key] = gameRuleConfig[key];はまだEducation版では使えない模様
  */
 export const gameRuleConfig = {
-    inMission: {
+    lobby: {
         doDaylightCycle: false,         // 昼夜サイクルを進行させるか
         doWeatherCycle: false,          // 天候が変化するか
         doFireTick: true,               // 火の延焼・消滅が起こるか
@@ -27,7 +27,7 @@ export const gameRuleConfig = {
         sendCommandFeedback: false,     // コマンド実行結果を表示するか
         maxCommandChainLength: 0        // コマンドチェーンの最大長（数値指定推奨）
     },
-    cleared: {
+    build: {
         doDaylightCycle: false,         // 昼夜サイクルを進行させるか
         doWeatherCycle: false,          // 天候が変化するか
         doFireTick: true,               // 火の延焼・消滅が起こるか
@@ -57,8 +57,8 @@ export const tickingArea = {
 }
 
 export const difficulty = {
-    p: "peaceful",
-    n: "normal"
+    lobby: "peaceful",
+    build: "normal"
 }
 
 /**
@@ -66,7 +66,6 @@ export const difficulty = {
  * 注意：player.setGameMode(GameMode.Survival);はまだEducation版では使えない模様
  */
 export const gameMode = {
-    a: "adventure",
-    c: "creative",
-    s: "survival"
+    lobby: "a @a",
+    build: "s @a"
 }

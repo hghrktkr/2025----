@@ -9,6 +9,7 @@ import { PlayerProgressManager } from "../player/playerProgressManager";
 import { gameLevel } from "../configs/gameLevel";
 import { TEST_MODE } from "../configs/testModeFlag";
 import { gateConfig } from "../configs/entrancePictureConfig";
+import { BuildGameManager } from "./buildGameManager";
 
 export class GameEntranceManager {
 
@@ -33,7 +34,7 @@ export class GameEntranceManager {
 
                     if(dist < 1) {
                         this.isStarting = true;
-                        let gameKey = entrance.getTags().find(t => t === "game1" || t === "game2" || "game3");
+                        let gameKey = entrance.getTags().find(t => t === "game1" || t === "game2" || t === "game3" || t === "game3Return");
                         entrance.remove();  // 多重実行防止
                         this.startGame(player, gameKey);
                     }
@@ -61,22 +62,43 @@ export class GameEntranceManager {
                         requiredRoomCount: roomCount
                     }
                 });
+
+                // 初期化してテレポート
+                await ScenarioManager.currentGameManager.init(player);
+
                 break;
             
             case "game2":
                 ScenarioManager.currentGameManager = new MissionGameManager({
                     gameKey: gameKey
                 });
+
+                // 初期化してテレポート
+                await ScenarioManager.currentGameManager.init(player);
+
                 break;
 
             case "game3":
+                ScenarioManager.currentGameManager = new BuildGameManager({
+                    gameKey: gameKey
+                });
+
+                // 初期化してテレポート
+                await ScenarioManager.currentGameManager.init(player);
 
                 break;
             
-        }
+            case "game3Return":
+                ScenarioManager.currentGameManager = new BuildGameManager({
+                    gameKey: gameKey
+                });
 
-        // 初期化してテレポート
-        await ScenarioManager.currentGameManager.init(player);
+                // 初期化して帰還
+                await ScenarioManager.currentGameManager.quitGame();
+                
+                break;
+            
+        }
     }
 
     /**
