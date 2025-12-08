@@ -25,3 +25,18 @@ export const gateConfig = {
     dimension: "overworld",
     blockType: "edu:fake_portal"
 };
+
+export const returnGateConfig = {
+    frame: {
+        startPos: {x: 844, y: 123, z: -54},
+        endPos: {x: 848, y: 127, z: -54},
+        dimension: "overworld",
+    blockType: "edu:fake_portal"
+    },
+    gate: {
+        startPos: {x: 844, y: 123, z: -54},
+        endPos: {x: 848, y: 127, z: -54},
+        dimension: "overworld",
+    blockType: "edu:fake_portal"
+    }
+};
