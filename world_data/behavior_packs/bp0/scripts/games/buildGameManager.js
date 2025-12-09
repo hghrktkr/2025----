@@ -1,12 +1,14 @@
 import { GameManagerBase } from "./gameManagerBase";
 import { buildGameConfig } from "../configs/buildGameConfig";
 import { returnGateConfig } from "../configs/entrancePictureConfig";
-import { world } from "@minecraft/server";
+import { world, system } from "@minecraft/server";
 import { EntranceSpawner } from "../spawners/entranceSpawner";
 import { ChestManager } from "../utils/chestManager";
 import { GameRuleManager } from "../utils/gameRuleManager";
 import { buildSpawnLocation, lobbySpawnLocation } from "../configs/playerConfig";
 import { PlayerManager } from "../player/playerManager";
+import { moveEntity, setPermission } from "../utils/transitionEffect";
+import { broadcastTitle } from "../utils/helpers";
 
 // 建築ゲーム管理クラス
 
@@ -18,6 +20,8 @@ export class BuildGameManager extends GameManagerBase {
         this.frameConfig = returnGateConfig.frame;  // ゲート作成用（枠）
         this.gateConfig = returnGateConfig.gate;    // ゲート作成用（fake_portal）
         this.chestManager = null;                   // チェスト監視用
+        this.santa = null;                          // スポーンしたサンタ
+        this.isSantaDespawned = false;              // サンタがジェットで飛んでいったか
     }
 
     /**
@@ -75,7 +79,10 @@ export class BuildGameManager extends GameManagerBase {
             this.chestManager.setUp();
     
             // ダイアログ開始
-            dim.runCommand(`dialogue open @e[tag=npc] @a start`);
+            dim.runCommand(`dialogue open @e[tag=npc] @a talk1`);
+
+            // イベントのリッスン開始
+            this.jetSequence();
 
             // 初回実行済み判定
             world.setDynamicProperty("buildGameInitialized", true);
@@ -96,6 +103,7 @@ export class BuildGameManager extends GameManagerBase {
         this.chestManager.start();
     }
 
+    /** 退室処理 */
     async quitGame() {
         GameRuleManager.startLobbySettings();
 
@@ -113,15 +121,73 @@ export class BuildGameManager extends GameManagerBase {
 
     }
 
+    /** サンタのスポーン */
     spawnSanta(dim) {
-        const santa = this.config.santa;
+        const santaInfo = this.config.santa;
         system.run(() => {
-            const npc = dim.spawnEntity(santa.id, santa.pos);
-            npc.rotation = santa.rotation;
+            this.santa = dim.spawnEntity(santaInfo.id, santaInfo.pos);
+            this.santa.rotation = santaInfo.rotation;
 
             // 会話スタートの便宜のためタグ付与
-            npc.addTag("npc");
+            this.santa.addTag("npc");
         })
+    }
+
+    /** start_jetイベントをリッスンしてサンタをジェットで飛ばす */
+    jetSequence() {
+        world.afterEvents.dataDrivenEntityTrigger.subscribe(ev => {
+            if(this.isSantaDespawned) return;
+
+            const eventId = ev.eventId;
+            const players = world.getPlayers();
+
+            if(!this.santa || eventId !== "start_jump") return;
+
+            const startPos1 = this.config.santa.pos;
+            const endPos1 = {
+                x: startPos1.x,
+                y: startPos1.y + 1,
+                z: startPos1.z
+            };
+
+            // 1.ちょっと飛ばす
+            system.run(() => {
+                // 権限変更
+                for(const player of players) {
+                    setPermission(player, false);
+                }
+
+                PlayerManager.playSoundForAll("edu.hohoho");
+                moveEntity(this.santa, startPos1, endPos1, 2);
+            });
+
+            const startPos2 = {...endPos1};
+            const endPos2 = {
+                x: startPos2.x,
+                y: startPos2.y + 30,
+                z: startPos2.z
+            };
+
+            // 2.上空まで飛ばす
+            system.runTimeout(() => {
+                moveEntity(this.santa, startPos2, endPos2, 3);
+            }, 20 * 4);
+
+            // 3.サンタをデスポーン
+            system.runTimeout(() => {
+                this.santa.triggerEvent("despawn");
+            }, 20 * 8);
+
+            // 4.タイトル表示
+            system.runTimeout(() => {
+                // 権限変更
+                for(const player of players) {
+                    setPermission(player, true);
+                }
+
+                broadcastTitle("けんちくしよう！", "えんとつのあるいえをたてよう");
+            }, 20 * 10)
+        });
     }
 
 }
