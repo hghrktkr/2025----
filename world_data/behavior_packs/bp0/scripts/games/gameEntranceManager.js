@@ -112,20 +112,24 @@ export class GameEntranceManager {
                 break;
             
             case "game1":
-                EntranceSpawner.spawnEntrance("game1");
                 EntranceSpawner.spawnGate(gateConfig.startPos, gateConfig.endPos, gateConfig.dimension, "minecraft:air");
+                EntranceSpawner.clearEntrance();
+                EntranceSpawner.spawnEntrance("game1");
                 break;
             
             case "game2":
+                EntranceSpawner.spawnGate(gateConfig.startPos, gateConfig.endPos, gateConfig.dimension, "minecraft:air");
+                EntranceSpawner.clearEntrance();
                 EntranceSpawner.spawnEntrance("game1");
                 EntranceSpawner.spawnEntrance("game2");
-                EntranceSpawner.spawnGate(gateConfig.startPos, gateConfig.endPos, gateConfig.dimension, "minecraft:air");
                 break;
             
             case "game3":
+                EntranceSpawner.spawnGate(gateConfig.startPos, gateConfig.endPos, gateConfig.dimension, gateConfig.blockType);
+                EntranceSpawner.clearEntrance();
                 EntranceSpawner.spawnEntrance("game1");
                 EntranceSpawner.spawnEntrance("game2");
-                EntranceSpawner.spawnGate(gateConfig.startPos, gateConfig.endPos, gateConfig.dimension, gateConfig.blockType);
+                EntranceSpawner.spawnEntrance("game3");
                 break;
 
             

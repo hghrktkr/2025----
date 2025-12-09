@@ -33,7 +33,7 @@ export const buildSpawnLocation = {
     x: 1045,
     y: 102,
     z: 430,
-    yaw: 0,
+    yaw: 180,
     pitch: 0,
     dimension: "overworld"
 }

@@ -7,13 +7,14 @@ import { TEST_MODE } from "../configs/testModeFlag";
 import { system } from "@minecraft/server";
 import { GameEntranceManager } from "../games/gameEntranceManager";
 import { ScenarioManager } from "../scenario/scenarioManager";
+import { TransitionManager } from "../transitions/transitionManager";
 
 export class PlayerStorage {
     static players = new Map(); // key: playerId, value: { Player, data: PlayerData } ゲーム中の参照用
     static DATA_KEY = "edu:player_data";
 
     /** Dynamic Propertyをロード プレイヤーがワールドに参加した時実行 */
-    static loadPlayerData(player) {
+    static async loadPlayerData(player) {
         const playerDataJSON = player.getDynamicProperty(this.DATA_KEY);
 
         let playerData;
@@ -57,6 +58,8 @@ export class PlayerStorage {
             player.teleport({x: dLoc.x, y: dLoc.y, z: dLoc.z});    // ロビーにテレポート
             player.setSpawnPoint(dLoc);   // スポーンポイントをロビーに
         }, 10); // 権限問題回避のため遅延
+
+        await TransitionManager.waitUntilChunkLoaded(dLoc.dimension, {x: dLoc.x, y: dLoc.y, z: dLoc.z});
 
         // シナリオに合わせて扉を出す
         const resumeScenario = playerData.scenario.currentScenarioId;

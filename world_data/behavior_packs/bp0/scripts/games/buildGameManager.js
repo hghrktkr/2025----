@@ -9,6 +9,9 @@ import { buildSpawnLocation, lobbySpawnLocation } from "../configs/playerConfig"
 import { PlayerManager } from "../player/playerManager";
 import { moveEntity, setPermission } from "../utils/transitionEffect";
 import { broadcastTitle } from "../utils/helpers";
+import { TransitionManager } from "../transitions/transitionManager";
+import { GameEntranceManager } from "./gameEntranceManager";
+import { TEST_MODE } from "../configs/testModeFlag";
 
 // 建築ゲーム管理クラス
 
@@ -50,6 +53,7 @@ export class BuildGameManager extends GameManagerBase {
 
         // 初回のみ実行
         if(!initialized) {
+            if(TEST_MODE.CONFIG) console.log(`initializing...`);
             // サンタのスポーン
             this.spawnSanta(dim);
     
@@ -77,19 +81,23 @@ export class BuildGameManager extends GameManagerBase {
             const chestConfig = this.config.chest;
             this.chestManager = new ChestManager(dim, chest, chestConfig);
             this.chestManager.setUp();
-    
-            // ダイアログ開始
-            dim.runCommand(`dialogue open @e[tag=npc] @a talk1`);
-
+            
+            // ダイアログ変更
+            system.run(() => {
+                dim.runCommand(`dialogue change @e[tag=npc] talk1`);
+            });
+            
             // イベントのリッスン開始
             this.jetSequence();
 
+            broadcastTitle("サンタクロースにはなしかけよう！");
+            
             // 初回実行済み判定
             world.setDynamicProperty("buildGameInitialized", true);
         }
 
-        // markerは毎回スポーンさせる
-        EntranceSpawner.spawnEntrance("game3Return");
+        // 2回目以降markerは毎回スポーンさせる
+        if(initialized) GameEntranceManager.spawnEntrance("game3Return");
 
         // ゲームの再開時など、chestManagerが消えた場合は再生成
         if(!this.chestManager) {
@@ -116,7 +124,10 @@ export class BuildGameManager extends GameManagerBase {
         await TransitionManager.openDoorSequence( 
             lobbySpawnLocation,
             "tp",
-            () => {PlayerManager.setSpawnPointForAll(lobbySpawnLocation)}
+            () => {
+                PlayerManager.setSpawnPointForAll(lobbySpawnLocation),
+                GameEntranceManager.spawnEntrance("game3")
+            }
         );
 
     }
@@ -186,6 +197,8 @@ export class BuildGameManager extends GameManagerBase {
                 }
 
                 broadcastTitle("けんちくしよう！", "えんとつのあるいえをたてよう");
+                this.isSantaDespawned = true;
+                GameEntranceManager.spawnEntrance("game3Return");
             }, 20 * 10)
         });
     }

@@ -1,6 +1,8 @@
 // 各ゲーム進行の基底クラス
 
 import { TEST_MODE } from "../configs/testModeFlag";
+import { world } from "@minecraft/server";
+import { lobbySpawnLocation, gameSpawnLocation, buildSpawnLocation } from "../configs/playerConfig";
 
 export class GameManagerBase {
     constructor({ gameKey, roomSizeInfo, config = {} } = {}) {
@@ -76,4 +78,27 @@ export class GameManagerBase {
             const pad = (num) => String(num).padStart(2,"0");   // 1桁の場合0挿入
             return `${pad(min)}:${pad(sec)}`;
         }
+
+    /* -------------------------
+    ゲームステージの事前読み込み
+     ------------------------- */
+        static _setupSpawnTickingAreas() {
+            const dim = world.getDimension("overworld");
+
+            const areas = [
+                { name: "lobby", pos: lobbySpawnLocation },
+                { name: "game", pos: gameSpawnLocation },
+                { name: "build", pos: buildSpawnLocation }
+            ];
+
+            for (const area of areas) {
+                const { x, y, z } = area.pos;
+
+                // 半径 4〜6 で十分（1チャンク = 16×16）
+                dim.runCommand(
+                    `tickingarea add circle ${x} ${y} ${z} 10 spawn_${area.name} true`
+                );
+            }
+        }
+
 }

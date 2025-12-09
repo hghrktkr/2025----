@@ -1,6 +1,6 @@
 import { PlayerManager } from "../player/playerManager";
 import { TEST_MODE } from "../configs/testModeFlag";
-import { system } from "@minecraft/server";
+import { system, world } from "@minecraft/server";
 
 export class TransitionManager {
     /**
@@ -36,10 +36,52 @@ export class TransitionManager {
         // テレポート
         system.runTimeout(() => {
             PlayerManager.teleportAllPlayers(nextLocationData);
-        }, 10); // フェード後にテレポートするよう遅延
+        }, 15); // フェード後にテレポートするよう遅延
+
+        // ロードを待つ
+        await this.waitUntilChunkLoaded(
+            world.getDimension(nextLocationData.dimension),
+            {
+                x: nextLocationData.x,
+                y: nextLocationData.y,
+                z: nextLocationData.z
+            }
+        )
 
         // フェードイン
         PlayerManager.setPermissionForAll(true);
         PlayerManager.setCameraForAll("clear");
     }
+
+    /**
+     * チャンクのロードを待つ
+     * @param {dimension} dimension 
+     * @param {{x: number, y: number, z: number}} pos 
+     * @param {number} maxTick 200
+     * @returns 
+     */
+    static async waitUntilChunkLoaded(dimension, pos, maxTick = 200) {
+    let tick = 0;
+    return new Promise((resolve, reject) => {
+        const handle = system.runInterval(() => {
+            try {
+                // block が取れればチャンクは読み込まれている
+                const block = dimension.getBlock({ x: pos.x, y: pos.y, z: pos.z });
+                if (block) {
+                    system.clearRun(handle);
+                    resolve(true);
+                }
+            } catch (e) {
+                // 読み込まれていない場合はエラーが飛んでくる
+            }
+
+            tick++;
+            if (tick > maxTick) {
+                system.clearRun(handle);
+                reject(new Error("Chunk load timeout"));
+            }
+        }, 1);
+    });
+}
+
 }

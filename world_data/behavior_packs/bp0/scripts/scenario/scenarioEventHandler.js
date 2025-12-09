@@ -173,7 +173,7 @@ export class ScenarioEventHandler {
             santa.playAnimation("attack");
 
             // fake_portal設置+効果音
-            EntranceSpawner.spawnGate(gateStartPos, gateEndPos, dimension, blockType);
+            GameEntranceManager.spawnEntrance("game3");
             PlayerManager.playSoundForAll("edu.barrier");
             system.waitTicks(10);
         }, 20 * 8);

@@ -80,8 +80,6 @@ export class ScenarioManager {
 
                 // ムービー
                 await ScenarioEventHandler.afterClearGame2Sequence();
-                // 扉を出現させる（ムービー内で出しているがマーカーを出すため）
-                GameEntranceManager.spawnEntrance(scenarioId);
                 
                 break;
         
@@ -118,6 +116,7 @@ export class ScenarioManager {
                 EntranceSpawner.spawnGate(gateConfig.startPos, gateConfig.endPos, gateConfig.dimension, "minecraft:air");
                 PlayerStorage.resetPlayerData(player);
                 GameEntranceManager.isStarting = false;
+                world.setDynamicProperty("buildGameInitialized", false);
             }
             else if(ev.itemStack.typeId === "minecraft:end_rod") {
                 this.triggerScenarioEvent("game3");
