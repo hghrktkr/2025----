@@ -29,11 +29,11 @@ export const gameSpawnLocation = {
 };
 
 // 作品制作のスポーン位置
-export const buildSpawnLocaton = {
-    x: 856,
-    y: 121,
-    z: -89,
-    yaw: 180,
+export const buildSpawnLocation = {
+    x: 1045,
+    y: 102,
+    z: 430,
+    yaw: 0,
     pitch: 0,
     dimension: "overworld"
 }

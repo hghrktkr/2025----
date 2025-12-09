@@ -7,24 +7,18 @@ export const buildGameConfig = {
     stagePos: { x: 500, y: 120, z: 500 },
 
     // プレイヤー初期位置
-    playerSpawnPos: { x: 500, y: 120, z: 500 },
+    playerSpawnPos: { x: 1045, y: 102, z: 430 },
 
     // NPC（サンタ）の位置と向き
     santa: {
         id: "edu:santa_claus_red",
-        pos: { x: 502, y: 120, z: 500 },
+        pos: { x: 1047, y: 102, z: 428 },
         rotation: 180
-    },
-
-    // ロビーに戻るゲートの位置
-    returnGate: {
-        pos: { x: 500, y: 120, z: 505 },
-        tag: "lobby_return"
     },
 
     // チェスト関連
     chest: {
-        pos: { x: 498, y: 120, z: 500 },
+        pos: { x: 1047, y: 102, z: 430 },
         items: [
             { slot: 0, type: "minecraft:oak_planks", amount: 64 },
             { slot: 1, type: "minecraft:glass", amount: 64 },
