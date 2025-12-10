@@ -30,9 +30,6 @@ export class TransitionManager {
         // SE再生
         PlayerManager.playSoundForAll(seList[seId]);
 
-        // 部屋生成などの関数実行
-        await generateRoomCallback();
-
         // テレポート
         system.runTimeout(() => {
             PlayerManager.teleportAllPlayers(nextLocationData);
@@ -46,7 +43,10 @@ export class TransitionManager {
                 y: nextLocationData.y,
                 z: nextLocationData.z
             }
-        )
+        );
+
+        // 部屋生成などの関数実行
+        await generateRoomCallback();
 
         // フェードイン
         PlayerManager.setPermissionForAll(true);
@@ -61,27 +61,30 @@ export class TransitionManager {
      * @returns 
      */
     static async waitUntilChunkLoaded(dimension, pos, maxTick = 200) {
-    let tick = 0;
-    return new Promise((resolve, reject) => {
-        const handle = system.runInterval(() => {
-            try {
-                // block が取れればチャンクは読み込まれている
-                const block = dimension.getBlock({ x: pos.x, y: pos.y, z: pos.z });
-                if (block) {
-                    system.clearRun(handle);
-                    resolve(true);
-                }
-            } catch (e) {
-                // 読み込まれていない場合はエラーが飛んでくる
-            }
+        if(TEST_MODE.CONFIG) console.log(`waiting world loaded...`);
 
-            tick++;
-            if (tick > maxTick) {
-                system.clearRun(handle);
-                reject(new Error("Chunk load timeout"));
-            }
-        }, 1);
-    });
+        let tick = 0;
+        return new Promise((resolve, reject) => {
+            const handle = system.runInterval(() => {
+                try {
+                    // block が取れればチャンクは読み込まれている
+                    const block = dimension.getBlock({ x: pos.x, y: pos.y, z: pos.z });
+                    if (block) {
+                        system.clearRun(handle);
+                        resolve(true);
+                    }
+                } catch (e) {
+                    // 読み込まれていない場合はエラーが飛んでくる
+                }
+
+                tick++;
+                if (tick > maxTick) {
+                    // タイムアウトエラー
+                    system.clearRun(handle);
+                    reject(new Error("Chunk load timeout"));
+                }
+            }, 1);
+        });
 }
 
 }

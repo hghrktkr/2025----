@@ -406,6 +406,8 @@ export class ExitGameManager extends GameManagerBase {
                 // コールバックにクリア時ムービー追加
                 callback = () => {
                     isFirstClear = PlayerProgressManager.setClearResultForAll(this.gameKey, this.currentLevel, this.elapsedMs);
+                    if(this.debug) console.log(`is first clear: ${isFirstClear}`);
+                    if(isFirstClear) ScenarioManager.triggerScenarioEvent("game2", player);
                 }
             }
 
@@ -415,8 +417,7 @@ export class ExitGameManager extends GameManagerBase {
                 "tp",
                 callback
             );
-            if(this.debug) console.log(`is first clear: ${isFirstClear}`);
-            if(isFirstClear) ScenarioManager.triggerScenarioEvent();
+
 
         }
 

@@ -28,12 +28,18 @@ export class EntranceSpawner {
 
         try {
             system.run(() => {
-                const newEntrance = dim.spawnEntity(type, spawnPos, {initialRotation: this.convertToYaw(direction)});
+                try {
+                    const newEntrance = dim.spawnEntity(type, spawnPos, {initialRotation: this.convertToYaw(direction)});
 
-                if(!newEntrance.isValid) console.warn(`can't spawn ${type} successfully`);
-                
-                newEntrance.addTag("entrance"); // getEntities検索用共通タグ
-                newEntrance.addTag(gameKey);    // 個別識別用タグ
+                    if(!newEntrance.isValid) console.warn(`can't spawn ${type} successfully`);
+                    
+                    newEntrance.addTag("entrance"); // getEntities検索用共通タグ
+                    newEntrance.addTag(gameKey);    // 個別識別用タグ
+                    
+                } catch (error) {
+                    console.warn(error);
+                }
+
             })
         } catch (error) {
             console.warn(`can't spawn entity ${type}`, error);

@@ -18,10 +18,10 @@ export const gameRuleConfig = {
         drowningDamage: true,           // 溺死ダメージを受けるか
         naturalRegeneration: true,      // 自然回復するか
         doInsomnia: false,              // 不眠によるファントムがスポーンするか
-        doImmediateRespawn: false,      // 即リスポーンするか
+        doImmediateRespawn: true,      // 即リスポーンするか
         pvp: false,                     // プレイヤー同士の攻撃を有効にするか
         mobGriefing: false,             // モブがブロックを壊したり動かしたりするか
-        showCoordinates: true,          // 座標を表示するか
+        showCoordinates: false,          // 座標を表示するか
         showDeathMessages: false,       // 死亡メッセージを表示するか
         spawnRadius: 0,                 // スポーン地点のランダム半径（数値指定推奨）
         sendCommandFeedback: false,     // コマンド実行結果を表示するか
@@ -40,8 +40,8 @@ export const gameRuleConfig = {
         drowningDamage: true,           // 溺死ダメージを受けるか
         naturalRegeneration: true,      // 自然回復するか
         doInsomnia: false,              // 不眠によるファントムがスポーンするか
-        doImmediateRespawn: false,      // 即リスポーンするか
-        pvp: false,                     // プレイヤー同士の攻撃を有効にするか
+        doImmediateRespawn: true,      // 即リスポーンするか
+        pvp: true,                     // プレイヤー同士の攻撃を有効にするか
         mobGriefing: true,             // モブがブロックを壊したり動かしたりするか
         showCoordinates: true,          // 座標を表示するか
         showDeathMessages: false,       // 死亡メッセージを表示するか

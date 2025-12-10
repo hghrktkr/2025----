@@ -54,6 +54,16 @@ export class BuildGameManager extends GameManagerBase {
         // 初回のみ実行
         if(!initialized) {
             if(TEST_MODE.CONFIG) console.log(`initializing...`);
+
+            // すでにサンタがいる場合は消しておく
+            const spawnedNpcs = dim.getEntities({
+                type: "edu:santa_claus_red"
+            });
+
+            for(const spawnedNpc of spawnedNpcs) {
+                spawnedNpc.remove();
+            }
+
             // サンタのスポーン
             this.spawnSanta(dim);
     
@@ -96,8 +106,8 @@ export class BuildGameManager extends GameManagerBase {
             world.setDynamicProperty("buildGameInitialized", true);
         }
 
-        // 2回目以降markerは毎回スポーンさせる
-        if(initialized) GameEntranceManager.spawnEntrance("game3Return");
+        // 帰還用マーカースポーン
+        GameEntranceManager.spawnEntrance("game3Return");
 
         // ゲームの再開時など、chestManagerが消えた場合は再生成
         if(!this.chestManager) {
@@ -109,6 +119,9 @@ export class BuildGameManager extends GameManagerBase {
         }
         // チェスト監視
         this.chestManager.start();
+
+        // ロビー扉を再度有効に
+        GameEntranceManager.isStarting = false;
     }
 
     /** 退室処理 */
@@ -126,7 +139,8 @@ export class BuildGameManager extends GameManagerBase {
             "tp",
             () => {
                 PlayerManager.setSpawnPointForAll(lobbySpawnLocation),
-                GameEntranceManager.spawnEntrance("game3")
+                GameEntranceManager.spawnEntrance("game3"),
+                GameEntranceManager.isStarting = false;
             }
         );
 

@@ -36,6 +36,9 @@ export class GameEntranceManager {
                         this.isStarting = true;
                         let gameKey = entrance.getTags().find(t => t === "game1" || t === "game2" || t === "game3" || t === "game3Return");
                         entrance.remove();  // 多重実行防止
+
+                        if(TEST_MODE.CONFIG) console.log(`entering ${entrance.typeId}`);
+                        
                         this.startGame(player, gameKey);
                     }
                 }
@@ -93,6 +96,8 @@ export class GameEntranceManager {
                     gameKey: gameKey
                 });
 
+                if(TEST_MODE.CONFIG) console.log(`quitting game`);
+
                 // 初期化して帰還
                 await ScenarioManager.currentGameManager.quitGame();
                 
@@ -102,7 +107,7 @@ export class GameEntranceManager {
     }
 
     /**
-     * シナリオに応じて扉を出現させる(ロビー移動時)
+     * シナリオに応じて扉を出現させる
      * @param {string} currentScenarioId opening | game1 | game2 | ending
      */
     static spawnEntrance(currentScenarioId) {
@@ -130,14 +135,20 @@ export class GameEntranceManager {
                 EntranceSpawner.spawnEntrance("game1");
                 EntranceSpawner.spawnEntrance("game2");
                 EntranceSpawner.spawnEntrance("game3");
+                EntranceSpawner.spawnEntrance("game3Return");
                 break;
 
-            
-            case "ending":
+            case "game3Return":
+                EntranceSpawner.clearEntrance();
+                EntranceSpawner.spawnEntrance("game1");
+                EntranceSpawner.spawnEntrance("game2");
+                EntranceSpawner.spawnEntrance("game3");
+                EntranceSpawner.spawnEntrance("game3Return");
 
                 break;
             
             default:
+                console.warn(`can't find entrance of ${currentScenarioId}`);
                 break;
         }
     }
