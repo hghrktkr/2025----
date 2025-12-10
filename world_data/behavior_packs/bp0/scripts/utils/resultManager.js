@@ -2,6 +2,7 @@ import { system, world } from "@minecraft/server";
 import { PlayerStorage } from "../player/playerStorage";
 import { signConfig } from "../configs/signConfig";
 import { ActionFormData } from "@minecraft/server-ui";
+import { broadcastChat } from "./helpers";
 
 export class ResultManager {
     static resultEventListener = null;    // 表示イベント
@@ -21,7 +22,7 @@ export class ResultManager {
             ev.cancel = true; // 看板編集UIを出さない
 
             const entry = PlayerStorage.get(player);  
-            if (!playerData) return;
+            if (!entry) return;
 
             const playerData = entry.data;
             this.showHighScoreForm(player, playerData, gameKey);
@@ -48,6 +49,7 @@ export class ResultManager {
         const progress = playerData[gameKey];
         if(!progress) {
             console.warn(`can't find player data: ${player.name}`);
+            broadcastChat(`can't find player data: ${player.name}`);
             return;
         }
 
