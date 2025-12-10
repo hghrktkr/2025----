@@ -208,6 +208,7 @@ class BuildGameManager extends GameManagerBase {
 
             // 2.上空まで飛ばす
             system.runTimeout(() => {
+                PlayerManager.playSoundForAll("edu.launch");
                 moveEntity(this.santa, startPos2, endPos2, 3);
             }, 20 * 4);
 
