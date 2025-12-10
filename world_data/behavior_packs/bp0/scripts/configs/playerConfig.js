@@ -28,6 +28,16 @@ export const gameSpawnLocation = {
     dimension: "overworld"
 };
 
+// ミッション開始時のスポーン位置
+export const missionSpawnLocation = {
+    x: 840,
+    y: 118,
+    z: -150,
+    yaw: 0,
+    pitch: 270,
+    dimension: "overworld"
+};
+
 // 作品制作のスポーン位置
 export const buildSpawnLocation = {
     x: 1045,
