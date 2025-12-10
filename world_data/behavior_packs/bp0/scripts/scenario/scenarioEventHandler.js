@@ -39,6 +39,7 @@ export class ScenarioEventHandler {
             santa = dim.spawnEntity("edu:santa_claus_red", {x: 837, y: 122, z: -44}, {
                 initialRotation: 180
             });
+            santa.setRotation({x: 0, y: 180});
 
             moveEntity(santa, tpStartPos, tpEndPos, totalSec - 0.5);
 
@@ -95,6 +96,7 @@ export class ScenarioEventHandler {
             santa = dim.spawnEntity("edu:santa_claus_red", {x: 855, y: 122, z: -44}, {
                 initialRotation: 180
             });
+            santa.setRotation({x: 0, y: 180});
             moveEntity(santa, tpStartPos, tpEndPos, totalSec - 0.5);
 
             for(const player of dim.getPlayers()) {
@@ -148,6 +150,7 @@ export class ScenarioEventHandler {
             santa = dim.spawnEntity("edu:santa_claus_red", {x: 846, y: 121, z: -47}, {
                 initialRotation: 180
             });
+            santa.setRotation({x: 0, y: 180});
             moveEntity(santa, tpStartPos, tpEndPos, totalSec - 0.5);
 
             for(const player of dim.getPlayers()) {

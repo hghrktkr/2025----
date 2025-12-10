@@ -30,6 +30,7 @@ export class EntranceSpawner {
             system.run(() => {
                 try {
                     const newEntrance = dim.spawnEntity(type, spawnPos, {initialRotation: this.convertToYaw(direction)});
+                    newEntrance.setRotation({x: 0, y: this.convertToYaw(direction)});
 
                     if(!newEntrance.isValid) console.warn(`can't spawn ${type} successfully`);
                     

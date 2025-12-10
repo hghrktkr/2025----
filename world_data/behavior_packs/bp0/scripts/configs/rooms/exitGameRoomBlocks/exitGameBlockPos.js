@@ -1,7 +1,7 @@
 /** ブロックの相対座標とステート */
 const exitGameBlockPos = {
     portrait: [
-        { type: "block", pos: { x: 1, y: 1, z: 0 }, states: {"minecraft:cardinal_direction": "south"} }
+        { type: "block", pos: { x: 1, y: 1, z: 0 }, states: {"minecraft:cardinal_direction": "north"} }
     ],
     presentBox: [
         { type: "block", pos: { x: 2, y: 0, z: 3 }, states: {} },

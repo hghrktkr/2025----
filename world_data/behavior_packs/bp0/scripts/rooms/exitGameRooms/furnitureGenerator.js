@@ -81,6 +81,7 @@ class FurnitureGenerator {
                 // エンティティの場合
                 if(type === "entity") {
                     const entity = dim.spawnEntity(chosenType, abs, {initialRotation:  this.convertToYaw(direction)});
+                    entity.setRotation({x: 0, y: this.convertToYaw(direction)});
                 }
             });
         }
