@@ -26,5 +26,13 @@ export const buildGameConfig = {
             { slot: 3, type: "minecraft:torch", amount: 64 },
         ],
         refillIntervalSec: 5
+    },
+
+    // 進入禁止エリア
+    forbiddenArea: {
+        xStart: 821,
+        zStart: -185,
+        xEnd: 930,
+        zEnd: 0
     }
 };

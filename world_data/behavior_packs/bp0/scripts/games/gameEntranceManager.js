@@ -9,7 +9,7 @@ import { PlayerProgressManager } from "../player/playerProgressManager";
 import { gameLevel } from "../configs/gameLevel";
 import { TEST_MODE } from "../configs/testModeFlag";
 import { gateConfig } from "../configs/entrancePictureConfig";
-import { BuildGameManager } from "./buildGameManager";
+import { buildGameManager } from "./buildGameManager";
 
 export class GameEntranceManager {
 
@@ -82,9 +82,7 @@ export class GameEntranceManager {
                 break;
 
             case "game3":
-                ScenarioManager.currentGameManager = new BuildGameManager({
-                    gameKey: gameKey
-                });
+                ScenarioManager.currentGameManager = buildGameManager;
 
                 // 初期化してテレポート
                 await ScenarioManager.currentGameManager.init(player);
@@ -92,11 +90,7 @@ export class GameEntranceManager {
                 break;
             
             case "game3Return":
-                ScenarioManager.currentGameManager = new BuildGameManager({
-                    gameKey: gameKey
-                });
-
-                if(TEST_MODE.CONFIG) console.log(`quitting game`);
+                ScenarioManager.currentGameManager = buildGameManager;
 
                 // 初期化して帰還
                 await ScenarioManager.currentGameManager.quitGame();

@@ -15,7 +15,7 @@ import { TEST_MODE } from "../configs/testModeFlag";
 
 // 建築ゲーム管理クラス
 
-export class BuildGameManager extends GameManagerBase {
+class BuildGameManager extends GameManagerBase {
     constructor(options) {
         super(options);
 
@@ -25,6 +25,8 @@ export class BuildGameManager extends GameManagerBase {
         this.chestManager = null;                   // チェスト監視用
         this.santa = null;                          // スポーンしたサンタ
         this.isSantaDespawned = false;              // サンタがジェットで飛んでいったか
+        this.isAreaGuard = false;                   // 禁止エリアを監視しているか
+        this.guard = null;                          // 監視インターバル
     }
 
     /**
@@ -122,11 +124,22 @@ export class BuildGameManager extends GameManagerBase {
 
         // ロビー扉を再度有効に
         GameEntranceManager.isStarting = false;
+
+        // 禁止エリアの監視
+        this.startAreaGuard();
     }
 
     /** 退室処理 */
     async quitGame() {
+        if(TEST_MODE.CONFIG) console.log(`quitting game3`);
+
+        // 禁止エリアの監視ストップ
+        this.stopAreaGuard();
+
         GameRuleManager.startLobbySettings();
+
+        await system.waitTicks(10);
+        
 
         // チェスト監視停止
         if (this.chestManager) {
@@ -138,8 +151,8 @@ export class BuildGameManager extends GameManagerBase {
             lobbySpawnLocation,
             "tp",
             () => {
-                PlayerManager.setSpawnPointForAll(lobbySpawnLocation),
-                GameEntranceManager.spawnEntrance("game3"),
+                PlayerManager.setSpawnPointForAll(lobbySpawnLocation);
+                GameEntranceManager.spawnEntrance("game3");
                 GameEntranceManager.isStarting = false;
             }
         );
@@ -217,4 +230,54 @@ export class BuildGameManager extends GameManagerBase {
         });
     }
 
+    /** 禁止エリアの監視スタート */
+    startAreaGuard() {
+        if(this.isAreaGuard) return;
+        this.isAreaGuard = true;
+        if(TEST_MODE.CONFIG) console.log(`guard starting...`);
+        if(TEST_MODE.CONFIG) console.log("startAreaGuard this:", this);
+
+        this.guard = system.runInterval(() => {
+            for(const player of world.getAllPlayers()) {
+                const {x, z} = player.location;
+
+                const inArea =
+                    this.config.forbiddenArea.xStart <= x && x <= this.config.forbiddenArea.xEnd &&
+                    this.config.forbiddenArea.zStart <= z && z <= this.config.forbiddenArea.zEnd;
+                
+                if(inArea) {
+                    // テレポート
+                    TransitionManager.openDoorSequence(
+                        buildSpawnLocation,
+                        "tp",
+                        () => {
+                            broadcastTitle("ふしぎなちからでもどされてしまった！", "ちかづけないようだ・・・");
+                        }
+                    );
+                }
+            }
+        }, 20);
+        if(TEST_MODE.CONFIG) console.log(`guard: ${this.guard}`);
+    }
+
+    /** 禁止エリアの監視ストップ */
+    stopAreaGuard() {
+        if(TEST_MODE.CONFIG) console.log("stopAreaGuard this:", this);
+        if (this.guard !== null) {
+            try {
+                if (TEST_MODE.CONFIG) console.log(`guard: ${this.guard} clearing...`);
+                system.clearRun(this.guard);
+            } catch (e) {
+                console.warn("Failed to clear guard:", e);
+            }
+        } else {
+            if (TEST_MODE.CONFIG) console.log("guard was already null (no interval running)");
+        }
+
+        this.guard = null;
+        this.isAreaGuard = false;
+    }
+
 }
+
+export const buildGameManager = new BuildGameManager();

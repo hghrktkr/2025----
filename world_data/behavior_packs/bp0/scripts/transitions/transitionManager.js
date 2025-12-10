@@ -3,6 +3,9 @@ import { TEST_MODE } from "../configs/testModeFlag";
 import { system, world } from "@minecraft/server";
 
 export class TransitionManager {
+
+    static isTransiting = false;
+
     /**
      * 次の部屋を生成して移動させる
      * @param {object} nextLocationData 次に進む部屋のデータ dimension, x, y, z, yaw, pitch
@@ -10,7 +13,10 @@ export class TransitionManager {
      * @param {CallableFunction} generateRoomCallback コールバック関数
      */
     static async openDoorSequence(nextLocationData, doorType, generateRoomCallback) {
-
+        // 二重起動防止
+        if(this.isTransiting) return;
+        this.isTransiting = true;
+        if(TEST_MODE.CONFIG) console.log(`transition start`);
         // フェードアウト
         PlayerManager.setPermissionForAll(false);
         PlayerManager.setCameraForAll("fade");
@@ -51,6 +57,7 @@ export class TransitionManager {
         // フェードイン
         PlayerManager.setPermissionForAll(true);
         PlayerManager.setCameraForAll("clear");
+        this.isTransiting = false;
     }
 
     /**
@@ -68,8 +75,10 @@ export class TransitionManager {
             const handle = system.runInterval(() => {
                 try {
                     // block が取れればチャンクは読み込まれている
-                    const block = dimension.getBlock({ x: pos.x, y: pos.y, z: pos.z });
-                    if (block) {
+                    const block1 = dimension.getBlock({ x: pos.x, y: pos.y, z: pos.z });
+                    const block2 = dimension.getBlock({ x: pos.x + 10, y: pos.y, z: pos.z + 10 });
+                    const block3 = dimension.getBlock({ x: pos.x - 10, y: pos.y, z: pos.z - 10 });
+                    if (block1 && block2 && block3) {
                         system.clearRun(handle);
                         resolve(true);
                     }
