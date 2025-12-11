@@ -70,7 +70,11 @@ export class ExitGameManager extends GameManagerBase {
                     continue;
                 }
 
-                gens.push(new FurnitureGenerator(key, blockTypes, positions));
+                gens.push(new FurnitureGenerator({
+                    key: key,
+                    blockTypes: blockTypes,
+                    positions: positions
+                }));
             }
 
             return gens;

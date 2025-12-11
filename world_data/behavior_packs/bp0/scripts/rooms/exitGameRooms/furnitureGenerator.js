@@ -2,7 +2,7 @@ import { world, system, BlockPermutation } from "@minecraft/server";
 
 class FurnitureGenerator {
     constructor({key, blockTypes, positions, area} = {}) {
-        this.key = key ?? "default";
+        this.key = key?? "default";
         this.blockTypes = Array.isArray(blockTypes) ? blockTypes : [blockTypes];
         this.positions = Array.isArray(positions) ? positions : [positions];
         this.area = area ?? null;   // startPos: {x: number, y: number, z: number}, size: {width: number, height: number, depth: number}
@@ -104,9 +104,9 @@ class FurnitureGenerator {
             for(let y = 0; y < height; y++) {
                 for(let z = 0; z < depth; z++) {
                     currentPos = {
-                        x: currentPos.x + x,
-                        y: currentPos.y + y,
-                        z: currentPos.z + z
+                        x: startPos.x + x,
+                        y: startPos.y + y,
+                        z: startPos.z + z
                     }
 
                     const block = dim.getBlock(currentPos);
@@ -134,13 +134,13 @@ class FurnitureGenerator {
 
     /** ランダムにエリア内の 1 座標を返す */
     pickRandomPos() {
-        const { start, size } = this.area;
+        const { startPos, size } = this.area;
         const { width, height, depth } = size;
 
         return {
-            x: start.x + Math.floor(Math.random() * width),
-            y: start.y + Math.floor(Math.random() * height),
-            z: start.z + Math.floor(Math.random() * depth),
+            x: startPos.x + Math.floor(Math.random() * width),
+            y: startPos.y + Math.floor(Math.random() * height),
+            z: startPos.z + Math.floor(Math.random() * depth),
         };
     }
 
