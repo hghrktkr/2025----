@@ -1,10 +1,11 @@
 import { world, system, BlockPermutation } from "@minecraft/server";
 
 class FurnitureGenerator {
-    constructor(key, blockTypes, positions) {
-        this.key = key;
+    constructor({key, blockTypes, positions, area} = {}) {
+        this.key = key ?? "default";
         this.blockTypes = Array.isArray(blockTypes) ? blockTypes : [blockTypes];
         this.positions = Array.isArray(positions) ? positions : [positions];
+        this.area = area ?? null;   // startPos: {x: number, y: number, z: number}, size: {width: number, height: number, depth: number}
     }
 
     /** directionキーをもとにyawを決める */
@@ -85,6 +86,83 @@ class FurnitureGenerator {
                 }
             });
         }
+    }
+
+    /**
+     * 範囲内の家具・ブロックを消去
+     * @param {{x: number, y: number, z: number}} startPos 開始座標
+     * @param {{width: number, height: number, depth: number}} size 大きさ
+     */
+    clearFurniture() {
+        const dim = world.getDimension("overworld");
+        const {startPos, size} = this.area;
+        const {width, height, depth} = size;
+
+        let currentPos = {...startPos};
+
+        for(let x = 0; x < width; x++) {
+            for(let y = 0; y < height; y++) {
+                for(let z = 0; z < depth; z++) {
+                    currentPos = {
+                        x: currentPos.x + x,
+                        y: currentPos.y + y,
+                        z: currentPos.z + z
+                    }
+
+                    const block = dim.getBlock(currentPos);
+                    if(!block) continue;
+                    
+                    system.run(() => {
+                        try {
+                            block.setType("minecraft:air");
+                        } catch (error) {
+                            console.warn(`can't clear block at (${currentPos.x}, ${currentPos.y}, ${currentPos.z})`, error);
+                        }
+                    });
+                }
+            }
+        }
+
+    }
+
+        /** ランダムに blockTypes から1つ選ぶ */
+    pickRandomBlock() {
+        return this.blockTypes[
+            Math.floor(Math.random() * this.blockTypes.length)
+        ];
+    }
+
+    /** ランダムにエリア内の 1 座標を返す */
+    pickRandomPos() {
+        const { start, size } = this.area;
+        const { width, height, depth } = size;
+
+        return {
+            x: start.x + Math.floor(Math.random() * width),
+            y: start.y + Math.floor(Math.random() * height),
+            z: start.z + Math.floor(Math.random() * depth),
+        };
+    }
+
+    /** ランダム位置にランダムブロックを1つ置く */
+    generateRandomOne() {
+        if (!this.area) {
+            console.warn("[FurnitureGenerator] area が指定されていません");
+            return;
+        }
+
+        const dim = world.getDimension("overworld");
+        const chosenType = this.pickRandomBlock();
+        const pos = this.pickRandomPos();
+
+        const block = dim.getBlock(pos);
+        if (!block) return;
+
+        system.run(() => {
+            block.setType(chosenType);
+        });
+
+        return { chosenType, pos };
     }
 }
 

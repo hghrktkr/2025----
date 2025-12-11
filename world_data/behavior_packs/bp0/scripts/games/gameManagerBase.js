@@ -5,14 +5,13 @@ import { world } from "@minecraft/server";
 import { lobbySpawnLocation, gameSpawnLocation, buildSpawnLocation } from "../configs/playerConfig";
 
 export class GameManagerBase {
-    constructor({ gameKey, roomSizeInfo, config = {} } = {}) {
+    constructor({ gameKey, config = {} } = {}) {
 
         // デバッグ用コンソールのON/OFF
         this.debug = TEST_MODE.CONFIG;
 
         // RoomManager
         this.roomManager = null;                                // 子クラスでセット
-        this.roomSizeInfo = roomSizeInfo;
 
         // 状態
         this.state = "INIT";                                    // INIT, LOADING, READY, TRANSITIONING, RUNNING, PAUSED, RESUME, ENDED

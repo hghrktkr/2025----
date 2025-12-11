@@ -398,6 +398,9 @@ export class ExitGameManager extends GameManagerBase {
             // 現在のGameManagerインスタンスをクリア
             ScenarioManager.currentGameManager = null;
 
+            // 扉を再生成
+            GameEntranceManager.spawnEntrance("game1");
+
             // クリアの場合はコールバック関数を渡す
             let callback = () => {};
             let isFirstClear = false;
