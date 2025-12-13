@@ -255,6 +255,7 @@ export class ExitGameManager extends GameManagerBase {
 
             // タイマースタート
             this._startTimer();
+            PlayerManager.playMusicForAll("edu.horror_piano");
 
             if(this.debug) console.log(`current room: ${this.currentProgress}`);
             if(this.debug) console.log(`current roomType: ${this.currentRoomType}`);
@@ -402,8 +403,9 @@ export class ExitGameManager extends GameManagerBase {
             // 現在のGameManagerインスタンスをクリア
             ScenarioManager.currentGameManager = null;
 
-            // 扉を再生成
-            GameEntranceManager.spawnEntrance("game1");
+            // 現在のシナリオに合わせて扉を再生成
+            const playerData = PlayerStorage.get(player).data;
+            GameEntranceManager.spawnEntrance(playerData.scenario.currentScenarioId);
 
             // クリアの場合はコールバック関数を渡す
             let callback = () => {};
@@ -413,6 +415,7 @@ export class ExitGameManager extends GameManagerBase {
                 // コールバックにクリア時ムービー追加
                 callback = () => {
                     isFirstClear = PlayerProgressManager.setClearResultForAll(this.gameKey, this.currentLevel, this.elapsedMs);
+                    PlayerManager.playMusicForAll("edu.jingle_bell");
                     if(this.debug) console.log(`is first clear: ${isFirstClear}`);
                     if(isFirstClear) ScenarioManager.triggerScenarioEvent("game2", player);
                 }

@@ -6,7 +6,7 @@ export const roomSizeInfo = {
         size: { width: 11, height: 11, depth: 11 }
     },
     missionGameRoom: {
-        startPos: { x: 840, y: 118, z: -144 },
-        size: { width: 10, height: 10, depth: 10 }        
+        startPos: { x: 841, y: 119, z: -135 },
+        size: { width: 10, height: 10 }        
     }
 };

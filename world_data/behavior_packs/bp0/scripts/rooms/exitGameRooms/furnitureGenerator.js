@@ -1,12 +1,15 @@
 import { world, system, BlockPermutation } from "@minecraft/server";
+import LOCATION_UTILS from "../../utils/locationUtils";
+import { broadcastChat } from "../../utils/helpers";
 
 class FurnitureGenerator {
     constructor({key, blockTypes, positions, area} = {}) {
         this.key = key?? "default";
         this.blockTypes = Array.isArray(blockTypes) ? blockTypes : [blockTypes];
         this.positions = Array.isArray(positions) ? positions : [positions];
-        this.area = area ?? null;   // startPos: {x: number, y: number, z: number}, size: {width: number, height: number, depth: number}
+        this.area = area ?? null;   // startPos: {x: number, y: number, z: number}, size: {width: number, height: number}
     }
+
 
     /** directionキーをもとにyawを決める */
     convertToYaw(direction, defaultYaw = 0) {
@@ -91,35 +94,43 @@ class FurnitureGenerator {
     /**
      * 範囲内の家具・ブロックを消去
      * @param {{x: number, y: number, z: number}} startPos 開始座標
-     * @param {{width: number, height: number, depth: number}} size 大きさ
+     * @param {{width: number, height: number}} size 大きさ
      */
     clearFurniture() {
         const dim = world.getDimension("overworld");
         const {startPos, size} = this.area;
-        const {width, height, depth} = size;
+        const {width, height} = size;
 
         let currentPos = {...startPos};
 
         for(let x = 0; x < width; x++) {
             for(let y = 0; y < height; y++) {
-                for(let z = 0; z < depth; z++) {
-                    currentPos = {
-                        x: startPos.x + x,
-                        y: startPos.y + y,
-                        z: startPos.z + z
-                    }
-
-                    const block = dim.getBlock(currentPos);
-                    if(!block) continue;
-                    
-                    system.run(() => {
-                        try {
-                            block.setType("minecraft:air");
-                        } catch (error) {
-                            console.warn(`can't clear block at (${currentPos.x}, ${currentPos.y}, ${currentPos.z})`, error);
-                        }
-                    });
+                currentPos = {
+                    x: startPos.x + x,
+                    y: startPos.y + y,
+                    z: startPos.z
                 }
+
+                const block = dim.getBlock(currentPos);
+                if(!block) continue;
+                
+                system.run(() => {
+                    try {
+                        block.setType("minecraft:air");
+                    } catch (error) {
+                        console.warn(`can't clear block at (${currentPos.x}, ${currentPos.y}, ${currentPos.z})`, error);
+                    }
+                });
+            }
+        }
+
+        // サンタが残っていれば削除
+        const entities = dim.getEntities({
+            type: "edu:santa_claus_red"
+        });
+        if(entities.length > 0) {
+            for(const santa of entities) {
+                santa.remove();
             }
         }
 
@@ -135,12 +146,12 @@ class FurnitureGenerator {
     /** ランダムにエリア内の 1 座標を返す */
     pickRandomPos() {
         const { startPos, size } = this.area;
-        const { width, height, depth } = size;
+        const { width, height } = size;
 
         return {
             x: startPos.x + Math.floor(Math.random() * width),
             y: startPos.y + Math.floor(Math.random() * height),
-            z: startPos.z + Math.floor(Math.random() * depth),
+            z: startPos.z
         };
     }
 
@@ -156,13 +167,43 @@ class FurnitureGenerator {
         const pos = this.pickRandomPos();
 
         const block = dim.getBlock(pos);
-        if (!block) return;
+        if (!block) {
+            console.warn(`[FurnitureGenerator] block が存在しません`)
+            return;
+        };
 
         system.run(() => {
             block.setType(chosenType);
         });
 
         return { chosenType, pos };
+    }
+
+    /** パーティクルと座標を出す */
+    showParticle(targetPos) {
+        const dim = world.getDimension("overworld");
+        const startPos = this.area.startPos;
+
+        // 高さを調整
+        const currentPos = LOCATION_UTILS.offsetPosition(startPos, {x: 0, y: 0.5, z: 0});
+        broadcastChat(`ざひょう: (${targetPos.x, targetPos.y, targetPos.z})`);
+
+        const particleInterval = system.runInterval(() => {
+            for(let x = currentPos.x; x < targetPos.x; x++) {
+                dim.spawnParticle("minecraft:balloon_gas_particle", {x: x, y: currentPos.y, z: currentPos.z});
+
+                for(let z = currentPos.z; z < targetPos.z; z++) {
+                    dim.spawnParticle("minecraft:electric_spark_particle", {x: x, y: currentPos.y, z: z});
+
+                    for(let y = currentPos.y; y < targetPos.y; y++) {
+                        dim.spawnParticle("minecraft:dragon_breath_trail", {x: x, y: y, z: z});
+                    }
+                }
+            }
+
+        }, 10);
+
+        return particleInterval;
     }
 }
 

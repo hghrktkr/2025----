@@ -119,6 +119,7 @@ export class PlayerProgressManager {
 
             gameProgress.cleared = true;
             const currentTime = gameProgress.clearTime; // 現在のベストタイムを取得
+            this.removeFlags(player, "bestTime");       // 一旦ベストタイムフラグを削除
 
             if(currentTime === 0 || elapsedMs < currentTime) {
                 gameProgress.clearTime = elapsedMs;

@@ -48,11 +48,12 @@ export class GameEntranceManager {
 
     /** gameKeyに応じたGameManagerインスタンスを生成 */
     static async startGame(player, gameKey) {
-
-        const lv = PlayerProgressManager.getGameLevel(player, gameKey);
-
+        
+        let lv = 1;
         switch (gameKey) {
             case "game1":
+                // 現在のレベルを取得
+                lv = PlayerProgressManager.getGameLevel(player, gameKey);
 
                 // クリア部屋数を取得
                 const roomCount = gameLevel[gameKey][lv];
@@ -74,6 +75,9 @@ export class GameEntranceManager {
                 break;
             
             case "game2":
+                // 現在のレベルを取得
+                lv = PlayerProgressManager.getGameLevel(player, gameKey);
+
                 ScenarioManager.currentGameManager = new MissionGameManager({
                     gameKey: gameKey,
                     config: {

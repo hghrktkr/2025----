@@ -33,8 +33,8 @@ export const missionSpawnLocation = {
     x: 840,
     y: 118,
     z: -150,
-    yaw: 0,
-    pitch: 270,
+    yaw: -10,
+    pitch: -10,
     dimension: "overworld"
 };
 

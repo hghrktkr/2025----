@@ -8,6 +8,7 @@ import { system } from "@minecraft/server";
 import { GameEntranceManager } from "../games/gameEntranceManager";
 import { ScenarioManager } from "../scenario/scenarioManager";
 import { TransitionManager } from "../transitions/transitionManager";
+import { PlayerManager } from "./playerManager";
 
 export class PlayerStorage {
     static players = new Map(); // key: playerId, value: { Player, data: PlayerData } ゲーム中の参照用
@@ -64,6 +65,9 @@ export class PlayerStorage {
         // シナリオに合わせて扉を出す
         const resumeScenario = playerData.scenario.currentScenarioId;
         GameEntranceManager.spawnEntrance(resumeScenario);
+
+        // 音楽再生
+        PlayerManager.playMusicForAll("edu.jingle_bell");
 
         // 新規ログインの場合、オープニングを流す
         if(resumeScenario === "opening") {

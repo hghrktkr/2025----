@@ -6,28 +6,39 @@ import { broadcastChat } from "./helpers";
 
 export class ResultManager {
     static resultEventListener = null;    // 表示イベント
+    static isShowing = false;             // 多重実行防止
+    static showingPlayers = new Set();    // スコア閲覧中のプレイヤー
 
+    /** 看板をインタラクトするとリザルトを表示する */
     static showResult() {
-        // 看板インタラクト時
-        this.resultEventListener = world.beforeEvents.playerInteractWithBlock.subscribe(ev => {
-            const { block, player } = ev;
+        if(this.resultEventListener) this.stopShowResult(); // 既に存在する場合は一度消去
 
-            // ブロックが看板かどうかをチェック（必要なら種類を追加）
-            if (!block.typeId.includes("sign")) return;
+        this.resultEventListener =
+            world.beforeEvents.playerInteractWithBlock.subscribe(ev => {
+                const { block, player } = ev;
 
-            const coordinates = `${block.location.x},${block.location.y},${block.location.z}`;
-            const gameKey = signConfig[coordinates];
-            if (!gameKey) return; // 紐づくゲームがなければ何もしない
+                if (!block.typeId.includes("sign")) return;
 
-            ev.cancel = true; // 看板編集UIを出さない
+                const coordinates = `${block.location.x},${block.location.y},${block.location.z}`;
+                const gameKey = signConfig[coordinates];
+                if (!gameKey) return;
 
-            const entry = PlayerStorage.get(player);  
-            if (!entry) return;
+                ev.cancel = true;
 
-            const playerData = entry.data;
-            this.showHighScoreForm(player, playerData, gameKey);
-        });
+                // プレイヤー単位で多重実行防止
+                if (this.showingPlayers.has(player.id)) return;
+                this.showingPlayers.add(player.id);
+
+                const entry = PlayerStorage.get(player);
+                if (!entry) {
+                    this.showingPlayers.delete(player.id);
+                    return;
+                }
+
+                this.showHighScoreForm(player, entry.data, gameKey);
+            });
     }
+
 
     static stopShowResult() {
         if(this.resultEventListener !== null) {
@@ -48,20 +59,28 @@ export class ResultManager {
     static showHighScoreForm(player, playerData, gameKey) {
         const progress = playerData[gameKey];
         if(!progress) {
-            console.warn(`can't find player data: ${player.name}`);
-            broadcastChat(`can't find player data: ${player.name}`);
+            this.showingPlayers.delete(player.id);
             return;
         }
 
         const form = new ActionFormData()
-            .title(`ハイスコア`)
+            .title("ハイスコア")
             .body(this.makeScoreText(progress))
-            .button(`OK`);
-        
+            .button("OK");
+
         system.run(() => {
-            form.show(player);
-        })
+            form.show(player)
+                .then(() => {
+                    // フォームを閉じたら解除
+                    this.showingPlayers.delete(player.id);
+                })
+                .catch(() => {
+                    // 念のため
+                    this.showingPlayers.delete(player.id);
+                });
+        });
     }
+
 
     static makeScoreText(progress) {
         return [

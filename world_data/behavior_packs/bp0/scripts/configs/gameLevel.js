@@ -1,27 +1,27 @@
 export const gameLevel = {
     game1: {
-        1: 3,
-        2: 5,
-        3: 8
+        1: 5,
+        2: 8,
+        3: 10
     },
     game2: {
         1: {
-            enemyLifeTime: 6,
-            spawnInterval: 3,
-            limitTime: 30,
+            enemyLifeTime: 10,
+            spawnInterval: 7,
+            limitTime: 60,
             clearScore: 3
         },
         2: {
-            enemyLifeTime: 4,
-            spawnInterval: 3,
-            limitTime: 60,
+            enemyLifeTime: 7,
+            spawnInterval: 6,
+            limitTime: 120,
             clearScore: 7
         },
         3: {
-            enemyLifeTime: 3,
-            spawnInterval: 3,
-            limitTime: 90,
-            clearScore: 10
+            enemyLifeTime: 7,
+            spawnInterval: 4,
+            limitTime: 150,
+            clearScore: 15
         }
     }
 }

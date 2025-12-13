@@ -29,11 +29,10 @@ system.beforeEvents.startup.subscribe((init) => {
             permissionLevel: CommandPermissionLevel.Any,
             mandatoryParameters: [
                 { type: CustomCommandParamType.Integer, name: "width" },
-                { type: CustomCommandParamType.Integer, name: "height" },
-                { type: CustomCommandParamType.Integer, name: "depth" },
+                { type: CustomCommandParamType.Integer, name: "height" }
             ]
         },
-        (origin, width, height, depth) => {
+        (origin, width, height) => {
             const player = origin?.sourceEntity;
             if (!player) return;
 
@@ -42,11 +41,13 @@ system.beforeEvents.startup.subscribe((init) => {
                 return;
             }
 
-            ScenarioManager.currentGameManager._shootSequence(
-                width,
-                height,
-                depth
-            );
+            if (ScenarioManager.currentGameManager.state === "RUNNING") {
+                ScenarioManager.currentGameManager._shootSequence(
+                    player,
+                    width,
+                    height
+                );
+            }
         }
     );
 
@@ -68,8 +69,9 @@ system.beforeEvents.startup.subscribe((init) => {
                 player.sendMessage("§c射的ゲーム以外では使えません");
                 return;
             }
-
-            ScenarioManager.currentGameManager.startGame();
+            if (ScenarioManager.currentGameManager.state === "READY") {
+                ScenarioManager.currentGameManager.startGame(player);
+            }
         }
     );
 });
