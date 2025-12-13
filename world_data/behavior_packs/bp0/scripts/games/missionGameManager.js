@@ -14,6 +14,7 @@ import { system, world } from "@minecraft/server";
 import { broadcastChat, broadcastTitle } from "../utils/helpers";
 import LOCATION_UTILS from "../utils/locationUtils";
 import { GameEntranceManager } from "./gameEntranceManager";
+import { ModalFormData } from "@minecraft/server-ui";
 
 export class MissionGameManager extends GameManagerBase {
     constructor(options) {
@@ -33,6 +34,7 @@ export class MissionGameManager extends GameManagerBase {
         // 大砲関係
         this.cannon = null;                                     // 大砲エンティティ
         this.hitEventListener = null;                           // 着弾管理
+        this.shootEventListener = null;                         // 着火イベント管理
         this.bullets = new Map();                               // id: entity.id, value: {entity, targetPos, fireTime}
         
         // ゲーム難易度設定
@@ -407,6 +409,73 @@ export class MissionGameManager extends GameManagerBase {
         }, 20 * 1);
 
     }
+
+    _setSwitch() {
+        const pressurePos = {
+            x: missionGameConfig.cannon.pos.x -1,
+            y: missionGameConfig.cannon.pos.y,
+            z: missionGameConfig.cannon.pos.z
+        }
+
+        this.dim.getBlock(pressurePos).setType("birch_pressure_plate");
+        const pressureEventListener =
+            world.afterEvents.pressurePlatePush.subscribe((ev) => {
+                const player = ev.source;
+                const block = ev.block;
+
+                block.setType("minecraft:air");
+                this.startGame(player);
+                world.afterEvents.pressurePlatePush.unsubscribe(pressureEventListener);
+            });
+
+    }
+
+    _onUse() {
+        this.shootEventListener = 
+            world.beforeEvents.itemUse.subscribe((ev) => {
+                const {source: player, itemStack: item} = ev;
+
+                if(item.typeId === "edu:shooter") {
+                    if(this.state !== "RUNNING") {
+                        player.sendMessage(`ゲーム中しか使えません！`);
+                        return;
+                    }
+
+                    // modalFormを作る
+                    this._showShootForm(player);
+                }
+        });
+    }
+
+    _stopOnUse() {
+        if(this.shootEventListener !== null) {
+            system.run(() => {
+                world.beforeEvents.itemUse.unsubscribe(this.shootEventListener);
+                this.shootEventListener = null;
+            });
+        }
+    }
+
+    _showShootForm(player) {
+
+        // モダルフォーム作成
+        const form = new ModalFormData()
+            .title(`ざひょうをきめよう！`)
+            .slider(`よこ`, 0, 9, {defaultValue: 5})
+            .slider(`たて`, 0, 9, {defaultValue: 5})
+            .submitButton(`§cはっしゃ！`);
+        
+        // 遅延を挟んで実行
+        system.run(() => {
+            form.show(player).then(res => {
+                if(res.canceled) {
+                    return;
+                } else {
+                    this._shootSequence(player, res.formValues[0], res.formValues[1]);
+                }
+            })
+        });
+    }
     
 
 
@@ -448,11 +517,14 @@ export class MissionGameManager extends GameManagerBase {
             // cannonスポーン
             this._spawnCannon();
 
+            // 感圧版スポーン
+            this._setSwitch();
+
             // ゲームスタートイベントの購読開始
             this.state = "READY";
             if(this.debug) console.log("[Mission] READY");
 
-            broadcastTitle(`コマンドでゲームスタート`, `/edu:goとにゅうりょくしよう`);
+            broadcastTitle(`コマンドでゲームスタート`, `かんあつばんをふんでスタートしよう`);
         }
 
         /** 開始処理 */
@@ -463,6 +535,11 @@ export class MissionGameManager extends GameManagerBase {
             }
 
             this.gamePlayer = player;
+
+            // シューターをわたしてイベント購読開始
+            this.dim.runCommand(`give @a edu:shooter 1 0 {"item_lock":{"mode":"lock_in_slot"}}`);
+            broadcastChat(`§bシューター§rをつかってたいほうはっしゃ！`);
+            this._onUse();
 
             // 念のためcannonがあるか確認、なければスポーン
             if(!this.cannon) this._spawnCannon();
@@ -542,6 +619,11 @@ export class MissionGameManager extends GameManagerBase {
                 system.clearRun(this.enemySpawnHandle);
             }
             this.enemySpawnHandle = null;
+
+            // アイテムを削除
+            this.dim.runCommand(`clear @a`);
+            // 購読停止
+            this._stopOnUse();
 
             // spawnLocationをリセット
             PlayerManager.setSpawnPointForAll(lobbySpawnLocation);

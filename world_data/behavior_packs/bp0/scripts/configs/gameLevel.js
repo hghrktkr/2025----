@@ -12,13 +12,13 @@ export const gameLevel = {
             clearScore: 3
         },
         2: {
-            enemyLifeTime: 7,
+            enemyLifeTime: 10,
             spawnInterval: 6,
             limitTime: 120,
             clearScore: 7
         },
         3: {
-            enemyLifeTime: 7,
+            enemyLifeTime:10,
             spawnInterval: 4,
             limitTime: 150,
             clearScore: 15
