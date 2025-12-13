@@ -1,6 +1,6 @@
 // 部屋の生成・扉の監視
 
-import { system, world } from "@minecraft/server";
+import { Block, system, world } from "@minecraft/server";
 import { exitGameDoorPos } from "../configs/rooms/exitGameRoomBlocks/exitGameDoorPos";
 
 export class RoomManager {
@@ -92,17 +92,18 @@ export class RoomManager {
         this.doorEventListener = world.beforeEvents.playerInteractWithBlock.subscribe(ev => {
             const { block, player } = ev;
             ev.cancel = true;
-
-            for(const entry of this.doorList) {
-                if(
-                    entry.pos.x === block.location.x,
-                    entry.pos.y === block.location.y,
-                    entry.pos.z === block.location.z
-                ) {
-                    callback({
-                        player,                                         // 扉を開けたプレイヤー
-                        isCorrect: entry.id === this.correctDoorId      // 開けた扉が正解かどうか
-                    });
+            if(block.typeId === "minecraft:spruce_door" || block.typeId === "minecraft:dark_oak_door") {
+                for(const entry of this.doorList) {
+                    if(
+                        entry.pos.x === block.location.x,
+                        entry.pos.y === block.location.y,
+                        entry.pos.z === block.location.z
+                    ) {
+                        callback({
+                            player,                                         // 扉を開けたプレイヤー
+                            isCorrect: entry.id === this.correctDoorId      // 開けた扉が正解かどうか
+                        });
+                    }
                 }
             }
         });
