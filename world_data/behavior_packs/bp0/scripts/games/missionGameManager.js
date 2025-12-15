@@ -524,7 +524,7 @@ export class MissionGameManager extends GameManagerBase {
             this.state = "READY";
             if(this.debug) console.log("[Mission] READY");
 
-            broadcastTitle(`コマンドでゲームスタート`, `かんあつばんをふんでスタートしよう`);
+            broadcastTitle(`しゃてきゲーム`, `かんあつばんをふんでスタートしよう`);
         }
 
         /** 開始処理 */
@@ -634,10 +634,6 @@ export class MissionGameManager extends GameManagerBase {
             // 現在のGameManagerインスタンスをクリア
             ScenarioManager.currentGameManager = null;
 
-            // 現在のシナリオに合わせて扉を再生成
-            const playerData = PlayerStorage.get(this.gamePlayer).data;
-            
-
             // クリアの場合はコールバック関数を渡す
             let callback = () => {};
             let isFirstClear = false;
@@ -650,11 +646,19 @@ export class MissionGameManager extends GameManagerBase {
                     if(this.debug) console.log(`[ednGame] is first clear: ${isFirstClear}`);
                     if(isFirstClear) {
                         ScenarioManager.triggerScenarioEvent("game3", this.gamePlayer);
+                    } else {
+                        // 現在のシナリオに合わせて扉を再生成
+                        const playerData = PlayerStorage.get(this.gamePlayer).data;
+                        GameEntranceManager.spawnEntrance(playerData.scenario.currentScenarioId);
                     }
 
                 }
             }else {
-                callback = () => {GameEntranceManager.spawnEntrance(playerData.scenario.currentScenarioId)};
+                callback = () => {
+                    // 現在のシナリオに合わせて扉を再生成
+                    const playerData = PlayerStorage.get(this.gamePlayer).data;
+                    GameEntranceManager.spawnEntrance(playerData.scenario.currentScenarioId);
+                };
                 broadcastTitle(`§bタイムオーバー・・・`, `ふしぎなちからでロビーへもどされる！！`);
             }
 

@@ -20,6 +20,7 @@ export class ScenarioEventHandler {
             system.run(() => {
                 setPermission(player, false);
                 setCamera(player, "fade");
+                player.runCommand(`inputermission set @s movement disabled`);
             });
         }
 
@@ -56,6 +57,7 @@ export class ScenarioEventHandler {
             for(const player of dim.getPlayers()) {
                 setPermission(player, true);
                 setCamera(player, "clear");
+                player.runCommand(`inputpermission set @s movement enabled`);
             }
         }, 20 * 6);
         
@@ -76,8 +78,11 @@ export class ScenarioEventHandler {
             system.run(() => {
                 setPermission(player, false);
                 setCamera(player, "fade");
+                player.runCommand(`inputpermission set @s movement disabled`);
             });
         }
+
+        dim.runCommand(`inputpermission set @a movement disabled`);
 
         const startPos = {x: 844, y: 124, z: -41};
         const startRot = {x: -10, y: 270};
@@ -112,7 +117,10 @@ export class ScenarioEventHandler {
             for(const player of dim.getPlayers()) {
                 setPermission(player, true);
                 setCamera(player, "clear");
+                player.runCommand(`inputpermission set @s movement enabled`);
             }
+
+            dim.runCommand(`inputpermission set @a movement enabled`);
         }, 20 * 6);
 
         system.runTimeout(() => {
@@ -132,6 +140,10 @@ export class ScenarioEventHandler {
                 setCamera(player, "fade");
             });
         }
+        system.run(() => {
+            dim.runCommand(`inputpermission set @a movement disabled`);
+        });
+
 
         const startPos = {x: 846, y: 127, z: -41};
         const startRot = {x: 20, y: 180};
@@ -189,8 +201,11 @@ export class ScenarioEventHandler {
             for(const player of dim.getPlayers()) {
                 setPermission(player, true);
                 setCamera(player, "clear");
+                player.runCommand(`inputpermission set @s movement enabled`);
             }
+            dim.runCommand(`inputpermission set @a movement enabled`);
         }, 20 * 11);
+
 
         system.runTimeout(() => {
             broadcastTitle("サンタをおいかけよう！", "ワープしよう");
